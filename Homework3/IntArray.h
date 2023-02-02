@@ -66,6 +66,33 @@ class IntArray {
         // Modifier Functions
         // ==============================
 
+                // PRE: 
+                // POST:
+                void clear();
+
+                // PRE: 
+                // POST: 
+                void addInt(int pInt);
+
+                // PRE: 
+                // POST: 
+                void insertInt(int i, int pInt);
+
+                // PRE: 
+                // POST: 
+                void replaceInt(int i, int pInt);
+
+                // PRE: 
+                // POST: 
+                void removeLastInt();
+
+                // PRE: 
+                // POST: 
+                void removeFirstInt();
+
+                // PRE: 
+                // POST: 
+                void removeIthInt(int i);
 
 
         // ==============================
@@ -89,8 +116,6 @@ class IntArray {
 
 
 
-}
-
-
+};
 
 #endif
