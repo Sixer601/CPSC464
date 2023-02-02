@@ -1,5 +1,10 @@
 #include <iostream>
 #include <fstream>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdio.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -7,6 +12,12 @@ using namespace std;
 // POST: 
 void inputData(istream &pInputFile) {
     
+
+    while(pInputFile.peek() != EOF) {
+        int datum;
+        pInputFile >> datum;
+
+    }
 
 }
 
