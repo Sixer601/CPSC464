@@ -11,6 +11,47 @@ using namespace std;
 
 // PRE:
 // POST:
+void createSharedMemory(IntArray pIntArray)
+{	
+	cout << "Entered createSharedMemory." << endl;
+
+	int shared_mem_id;
+
+	int *shm, *information;
+
+	key_t key = 0601;
+
+	// TODO: Calculate space required for intArray
+	int spaceRequired;
+
+	// Create shared memory segment
+	shared_mem_id = shmget(key, spaceRequired, IPC_CREAT | 0666);
+	if (shared_mem_id < 0)
+	{
+		perror("shmget");
+	}
+	else
+	{
+		// Attach segment to our data space
+		shm = (int *)shmat(shared_mem_id, NULL, 0);
+		if (shm == (int *)-1)
+		{
+			perror("shmat");
+		}
+		else
+		{
+			// Store data in memory for other processes to read
+			information = shm;
+			for (int i = 0; i < pIntArray.getContentLength(); i++)
+			{
+				information[i] = pIntArray.getNthIntInArray(i);
+			}
+		}
+	}
+}
+
+// PRE:
+// POST:
 void inputData(istream &pInputFile, bool debugMode)
 {
 	cout << "Entered inputData." << endl;
@@ -24,6 +65,7 @@ void inputData(istream &pInputFile, bool debugMode)
 		data.addInt(datum);
 	}
 
+	// Debug Mode Output
 	if (debugMode)
 	{
 		cout << "data: ";
@@ -33,13 +75,18 @@ void inputData(istream &pInputFile, bool debugMode)
 		}
 		cout << endl;
 	}
+
+	// Store intArray in shared memory
+	createSharedMemory(data);
 }
 
 // PRE:
 // POST:
-void createChildProcesses()
+void createChildProcesses(int neededProcessesNum)
 {
-	cout << "Entered createChildProcesses." << endl;
+	cout << "Entered createChildProcesses which will make " << neededProcessesNum << " processes" << endl;
+
+
 }
 
 // PRE:
@@ -64,11 +111,14 @@ int main(int argc, char **argv)
 		int numProcesses = stoi(argv[1]);
 		ifstream inputFile(argv[2]);
 		int thirdArg = stoi(argv[3]);
-		if(thirdArg == 1 || thirdArg == 0) {
-			if(thirdArg == 1) {
+		if (thirdArg == 1 || thirdArg == 0)
+		{
+			if (thirdArg == 1)
+			{
 				debugMode = true;
 			}
-			else {
+			else
+			{
 				debugMode = false;
 			}
 
@@ -78,12 +128,13 @@ int main(int argc, char **argv)
 			inputData(inputFile, debugMode);
 
 			// Create child processes
-			createChildProcesses();
+			createChildProcesses(numProcesses - 1);
 
 			// Begin handling chunks/jobs
 			handleJobs();
 		}
-		else {
+		else
+		{
 			cout << "Enter a 1 or 0 for debug mode." << endl;
 		}
 	}
