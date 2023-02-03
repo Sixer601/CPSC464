@@ -14,7 +14,7 @@ using namespace std;
 
 // PRE:
 // POST:
-void createSharedMemory(bool debugMode, IntArray pIntArray)
+void createSharedMemory(bool debugMode, IntArray pIntArray, key_t key, int &spaceRequired, int &numJobs)
 {
 	if (debugMode)
 	{
@@ -25,17 +25,15 @@ void createSharedMemory(bool debugMode, IntArray pIntArray)
 
 	int *shm, *information;
 
-	key_t key = 0601;
-
 	int numChunks = ceiling(pIntArray.getContentLength(), CHUNKSIZE);
-	
+
 	if (debugMode)
 	{
 		cout << "Number of chunks/jobs to handle: " << numChunks << endl;
 	}
 
 	// TODO: Calculate space required for intArray
-	int spaceRequired = (sizeof(char) * numChunks) + (sizeof(int) * pIntArray.getContentLength());
+	spaceRequired = (sizeof(char) * numChunks) + (sizeof(int) * pIntArray.getContentLength());
 
 	if (debugMode)
 	{
@@ -62,12 +60,12 @@ void createSharedMemory(bool debugMode, IntArray pIntArray)
 			// TODO: Setup Job Encoding
 			int numJobs = numChunks + ceiling(numChunks, 2);
 
-			if (debugMode) 
+			if (debugMode)
 			{
 				cout << "Number of Jobs: " << numJobs << endl;
 			}
 
-			for (int i = 0; i < numJobs; i++) 
+			for (int i = 0; i < numJobs; i++)
 			{
 				information[i] = i;
 			}
@@ -83,7 +81,7 @@ void createSharedMemory(bool debugMode, IntArray pIntArray)
 
 // PRE:
 // POST:
-void inputData(bool debugMode, istream &pInputFile)
+void inputData(bool debugMode, istream &pInputFile, key_t key, int &spaceRequired, int &numJobs)
 {
 	if (debugMode)
 	{
@@ -94,7 +92,7 @@ void inputData(bool debugMode, istream &pInputFile)
 	IntArray data;
 	while (pInputFile.peek() != EOF)
 	{
-		// ASSERT: 
+		// ASSERT:
 		int datum;
 		pInputFile >> datum;
 		data.addInt(datum);
@@ -113,7 +111,7 @@ void inputData(bool debugMode, istream &pInputFile)
 	}
 
 	// Store intArray in shared memory
-	createSharedMemory(debugMode, data);
+	createSharedMemory(debugMode, data, key, spaceRequired, numJobs);
 }
 
 // PRE:
@@ -151,16 +149,49 @@ void createChildProcesses(bool debugMode, int neededProcessesNum)
 
 // PRE:
 // POST:
-void handleJobs(bool debugMode)
+void handleJobs(bool debugMode, key_t key, int &spaceRequired, int &numJobs)
 {
+	int shmid;
+
 	if (debugMode)
 	{
-		cout << getpid() << " Entered handleJobs." << endl;
+		cout << getpid() << " Entered handleJobs with key: " << key << endl;
 	}
 
+	int *shm, *s;
 
+	/*
+	 * Locate the segment.
+	 */
+	if ((shmid = shmget(key, spaceRequired, 0666)) < 0)
+	{
+		perror("shmget");
+		exit(1);
+	}
 
+	/*
+	 * Now we attach the segment to our data space.
+	 */
+	if ((shm = (int *)shmat(shmid, NULL, 0)) == (int *)-1)
+	{
+		perror("shmat");
+		exit(1);
+	}
 
+	/*
+	 * Now read what the server put in the memory.
+	 */
+	if (debugMode)
+	{
+		cout << "Jobs: ";
+	}
+
+	for (int i = 0; i < numJobs; i++)
+	{
+		cout << shm[i] << " ";
+	}
+	
+	cout << endl;
 }
 
 // PRE:
@@ -178,6 +209,9 @@ int main(int argc, char **argv)
 		int numProcesses = stoi(argv[1]);
 		ifstream inputFile(argv[2]);
 		int thirdArg = stoi(argv[3]);
+		key_t key = 0601;
+		int spaceRequired;
+		int numJobs;
 		if (thirdArg == 1 || thirdArg == 0)
 		{
 			if (thirdArg == 1)
@@ -192,16 +226,17 @@ int main(int argc, char **argv)
 			if (debugMode)
 			{
 				cout << "number of processes required: " << numProcesses << endl;
+				cout << "key: " << key << endl;
 			}
 
 			// Input file data into shared memory
-			inputData(debugMode, inputFile);
+			inputData(debugMode, inputFile, key, spaceRequired, numJobs);
 
 			// Create child processes
 			createChildProcesses(debugMode, (numProcesses - 1));
 
 			// Begin handling chunks/jobs
-			handleJobs(debugMode);
+			handleJobs(debugMode, key, spaceRequired, numJobs);
 		}
 		else
 		{
