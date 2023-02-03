@@ -5,116 +5,102 @@
 
 using namespace std;
 
-class IntArray {
-    /*
-        Class Invariant (CI): 
+// PRE:
+// POST:
+void copy(int *pArray, int pArrayLength, int *newArray);
 
-    */
+class IntArray
+{
+	/*
+	    Class Invariant (CI):
 
-    private: 
-        int * theArray;
-        int contentLength;
-        int arraySize;
+	*/
 
-    public: 
-        // ==============================
-        // Constructors
-        // ==============================
+private:
+	int *theArray;
+	int contentLength;
+	int arraySize;
 
-            // Default Constructor
+public:
+	// ==============================
+	// Constructors
+	// ==============================
 
-                // PRE: 
-                // POST: 
-                IntArray();
+	// Default Constructor
 
-            // Copy Constructor
+	// PRE:
+	// POST:
+	IntArray();
 
-                // PRE: 
-                // POST: 
-                IntArray(const IntArray &pIntArray);
+	// Copy Constructor
 
-        // ==============================
-        // Destructor
-        // ==============================
+	// PRE:
+	// POST:
+	IntArray(const IntArray &pIntArray);
 
-                // PRE: 
-                // POST: 
-                ~IntArray();
+	// ==============================
+	// Destructor
+	// ==============================
 
-        // ==============================
-        // Accessor Functions
-        // ==============================
+	// PRE:
+	// POST:
+	~IntArray();
 
-                // PRE: 
-                // POST: 
-                int getNthIntInArray(int n) const;
+	// ==============================
+	// Accessor Functions
+	// ==============================
 
-                // PRE: 
-                // POST: 
-                int getArraySize() const;
+	// PRE:
+	// POST:
+	int getNthIntInArray(int n) const;
 
-                // PRE: 
-                // POST: 
-                int getContentLength() const;
+	// PRE:
+	// POST:
+	int getContentLength() const;
 
-                // PRE: 
-                // POST: 
-                int * getTheArray() const;
+	// PRE:
+	// POST:
+	int *getTheArray() const;
 
+	// ==============================
+	// Modifier Functions
+	// ==============================
 
-        // ==============================
-        // Modifier Functions
-        // ==============================
+	// PRE:
+	// POST:
+	void clear();
 
-                // PRE: 
-                // POST:
-                void clear();
+	// PRE:
+	// POST:
+	void addInt(int pInt);
 
-                // PRE: 
-                // POST: 
-                void addInt(int pInt);
+	// PRE:
+	// POST:
+	void insertInt(int i, int pInt);
 
-                // PRE: 
-                // POST: 
-                void insertInt(int i, int pInt);
+	// PRE:
+	// POST:
+	void replaceInt(int i, int pInt);
 
-                // PRE: 
-                // POST: 
-                void replaceInt(int i, int pInt);
+	// PRE:
+	// POST:
+	void removeLastInt();
 
-                // PRE: 
-                // POST: 
-                void removeLastInt();
+	// PRE:
+	// POST:
+	void removeFirstInt();
 
-                // PRE: 
-                // POST: 
-                void removeFirstInt();
+	// PRE:
+	// POST:
+	void removeIthInt(int i);
 
-                // PRE: 
-                // POST: 
-                void removeIthInt(int i);
+	// ==============================
+	// Predicate Functions
+	// ==============================
 
-
-        // ==============================
-        // Predicate Functions
-        // ==============================
-
-
-
-
-
-        // ==============================
-        // Operators
-        // ==============================
-
-
-
-        // ==============================
-        // Input/Output Member Functions
-        // ==============================
-
-
-
+	// PRE:
+	// POST:
+	bool isEmpty();
 
 };
 
