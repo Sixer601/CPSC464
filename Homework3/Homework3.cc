@@ -6,8 +6,11 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "IntArray.h"
+#include "HelperFunctions.h"
 
 using namespace std;
+
+#define CHUNKSIZE 100
 
 // PRE:
 // POST:
@@ -24,8 +27,10 @@ void createSharedMemory(bool debugMode, IntArray pIntArray)
 
 	key_t key = 0601;
 
+	int numChunks = ceiling(pIntArray.getContentLength(), CHUNKSIZE);
+
 	// TODO: Calculate space required for intArray
-	int spaceRequired = (sizeof(int) * pIntArray.getContentLength());
+	int spaceRequired = (sizeof(char) * numChunks) + (sizeof(int) * pIntArray.getContentLength());
 
 	if (debugMode)
 	{
@@ -133,6 +138,7 @@ void handleJobs(bool debugMode)
 	{
 		cout << getpid() << " Entered handleJobs." << endl;
 	}
+
 
 
 
