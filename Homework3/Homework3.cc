@@ -9,62 +9,84 @@
 
 using namespace std;
 
-// PRE: 
-// POST: 
-void inputData(istream &pInputFile) {
-    cout << "Entered inputData." << endl;
+// PRE:
+// POST:
+void inputData(istream &pInputFile, bool debugMode)
+{
+	cout << "Entered inputData." << endl;
 
-    IntArray data;
-    while(pInputFile.peek() != EOF) {
-        int datum;
-        pInputFile >> datum;
-        data.addInt(datum);
-    }
+	// Input data from file
+	IntArray data;
+	while (pInputFile.peek() != EOF)
+	{
+		int datum;
+		pInputFile >> datum;
+		data.addInt(datum);
+	}
 
-    for(int i = 0; i < data.getContentLength(); i++) {
-        cout << data.getNthIntInArray(i) << " ";
-    }
-    cout << endl;
-
+	if (debugMode)
+	{
+		cout << "data: ";
+		for (int i = 0; i < data.getContentLength(); i++)
+		{
+			cout << data.getNthIntInArray(i) << " ";
+		}
+		cout << endl;
+	}
 }
 
-// PRE: 
-// POST: 
-void createChildProcesses() {
-    cout << "Entered createChildProcesses." << endl;
-
+// PRE:
+// POST:
+void createChildProcesses()
+{
+	cout << "Entered createChildProcesses." << endl;
 }
 
-// PRE: 
-// POST: 
-void handleJobs() {
-    cout << "Entered handleJobs." << endl;
-
+// PRE:
+// POST:
+void handleJobs()
+{
+	cout << "Entered handleJobs." << endl;
 }
 
-// PRE: 
-// POST: 
-int main(int argc, char **argv) {
-    
-    if (argc != 2) {
-        cout << "Invalid number of arguments." << endl;
-    }
-    else {
+// PRE:
+// POST:
+int main(int argc, char **argv)
+{
 
-        ifstream inputFile(argv[1]);
+	if (argc != 4)
+	{
+		cout << "Invalid number of arguments." << endl;
+	}
+	else
+	{
+		bool debugMode;
+		int numProcesses = stoi(argv[1]);
+		ifstream inputFile(argv[2]);
+		int thirdArg = stoi(argv[3]);
+		if(thirdArg == 1 || thirdArg == 0) {
+			if(thirdArg == 1) {
+				debugMode = true;
+			}
+			else {
+				debugMode = false;
+			}
 
-        // Input file data into shared memory
-        inputData(inputFile);
+			cout << "number of processes required: " << numProcesses << endl;
 
-        // Create child processes
-        createChildProcesses();
+			// Input file data into shared memory
+			inputData(inputFile, debugMode);
 
-        // Begin handling chunks/jobs
-        handleJobs();
+			// Create child processes
+			createChildProcesses();
 
-    }
-    
+			// Begin handling chunks/jobs
+			handleJobs();
+		}
+		else {
+			cout << "Enter a 1 or 0 for debug mode." << endl;
+		}
+	}
 
-    return(0);
-
+	return (0);
 }
