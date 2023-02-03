@@ -60,11 +60,22 @@ void createSharedMemory(bool debugMode, IntArray pIntArray)
 		{
 			information = shm;
 			// TODO: Setup Job Encoding
+			int numJobs = numChunks + ceiling(numChunks, 2);
+
+			if (debugMode) 
+			{
+				cout << "Number of Jobs: " << numJobs << endl;
+			}
+
+			for (int i = 0; i < numJobs; i++) 
+			{
+				information[i] = i;
+			}
 
 			// Store data in memory for other processes to read
-			for (int i = 0; i < pIntArray.getContentLength(); i++)
+			for (int j = numJobs; j < (pIntArray.getContentLength() + numJobs); j++)
 			{
-				information[i] = pIntArray.getNthIntInArray(i);
+				information[j] = pIntArray.getNthIntInArray(j - numJobs);
 			}
 		}
 	}
