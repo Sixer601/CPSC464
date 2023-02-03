@@ -12,7 +12,7 @@ using namespace std;
 // PRE:
 // POST:
 void createSharedMemory(IntArray pIntArray)
-{	
+{
 	cout << "Entered createSharedMemory." << endl;
 
 	int shared_mem_id;
@@ -22,7 +22,9 @@ void createSharedMemory(IntArray pIntArray)
 	key_t key = 0601;
 
 	// TODO: Calculate space required for intArray
-	int spaceRequired;
+	int spaceRequired = sizeof(int) * pIntArray.getContentLength();
+
+	cout << "Space Required: " << spaceRequired << endl;
 
 	// Create shared memory segment
 	shared_mem_id = shmget(key, spaceRequired, IPC_CREAT | 0666);
@@ -71,6 +73,7 @@ void inputData(istream &pInputFile, bool debugMode)
 		cout << "data: ";
 		for (int i = 0; i < data.getContentLength(); i++)
 		{
+			// ASSERT:
 			cout << data.getNthIntInArray(i) << " ";
 		}
 		cout << endl;
@@ -84,9 +87,29 @@ void inputData(istream &pInputFile, bool debugMode)
 // POST:
 void createChildProcesses(int neededProcessesNum)
 {
-	cout << "Entered createChildProcesses which will make " << neededProcessesNum << " processes" << endl;
-
-
+	cout << "Entered createChildProcesses which will make " << neededProcessesNum << " processes." << endl;
+	int children = 0;
+	bool child = false;
+	while(children < neededProcessesNum && !child) {
+		// ASSERT: 
+		pid_t childPID = fork();
+		if(childPID == -1) {
+			perror("fork");
+		}
+		else if (childPID == 0)
+		{
+			children++;
+			// Child Process
+			child = true;
+			cout << "I am child: " << getpid() << " of parent: " << getppid() << endl;
+		}
+		else 
+		{
+			children++;
+			// Parent Process
+			cout << "I am: " << getpid() << endl;
+		}
+	}
 }
 
 // PRE:
