@@ -25,7 +25,7 @@ void createSharedMemory(bool debugMode, IntArray pIntArray)
 	key_t key = 0601;
 
 	// TODO: Calculate space required for intArray
-	int spaceRequired = sizeof(int) * pIntArray.getContentLength();
+	int spaceRequired = (sizeof(int) * pIntArray.getContentLength());
 
 	if (debugMode)
 	{
@@ -100,7 +100,7 @@ void createChildProcesses(bool debugMode, int neededProcessesNum)
 	{
 		cout << "Entered createChildProcesses which will make " << neededProcessesNum << " processes." << endl;
 	}
-	
+
 	int children = 0;
 	bool child = false;
 	while (children < neededProcessesNum && !child)
@@ -133,6 +133,9 @@ void handleJobs(bool debugMode)
 	{
 		cout << getpid() << " Entered handleJobs." << endl;
 	}
+
+
+
 }
 
 // PRE:
