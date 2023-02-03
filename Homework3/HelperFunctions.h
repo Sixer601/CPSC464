@@ -9,4 +9,4 @@ using namespace std;
 // POST: 
 int ceiling(int a, int b);
 
-#endif;
+#endif

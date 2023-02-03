@@ -28,6 +28,11 @@ void createSharedMemory(bool debugMode, IntArray pIntArray)
 	key_t key = 0601;
 
 	int numChunks = ceiling(pIntArray.getContentLength(), CHUNKSIZE);
+	
+	if (debugMode)
+	{
+		cout << "Number of chunks/jobs to handle: " << numChunks << endl;
+	}
 
 	// TODO: Calculate space required for intArray
 	int spaceRequired = (sizeof(char) * numChunks) + (sizeof(int) * pIntArray.getContentLength());
