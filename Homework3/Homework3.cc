@@ -58,8 +58,10 @@ void createSharedMemory(bool debugMode, IntArray pIntArray)
 		}
 		else
 		{
-			// Store data in memory for other processes to read
 			information = shm;
+			// TODO: Setup Job Encoding
+
+			// Store data in memory for other processes to read
 			for (int i = 0; i < pIntArray.getContentLength(); i++)
 			{
 				information[i] = pIntArray.getNthIntInArray(i);
@@ -81,6 +83,7 @@ void inputData(bool debugMode, istream &pInputFile)
 	IntArray data;
 	while (pInputFile.peek() != EOF)
 	{
+		// ASSERT: 
 		int datum;
 		pInputFile >> datum;
 		data.addInt(datum);
