@@ -11,9 +11,12 @@ using namespace std;
 
 // PRE:
 // POST:
-void createSharedMemory(IntArray pIntArray)
+void createSharedMemory(bool debugMode, IntArray pIntArray)
 {
-	cout << "Entered createSharedMemory." << endl;
+	if (debugMode)
+	{
+		cout << "Entered createSharedMemory." << endl;
+	}
 
 	int shared_mem_id;
 
@@ -24,7 +27,10 @@ void createSharedMemory(IntArray pIntArray)
 	// TODO: Calculate space required for intArray
 	int spaceRequired = sizeof(int) * pIntArray.getContentLength();
 
-	cout << "Space Required: " << spaceRequired << endl;
+	if (debugMode)
+	{
+		cout << "Space Required: " << spaceRequired << endl;
+	}
 
 	// Create shared memory segment
 	shared_mem_id = shmget(key, spaceRequired, IPC_CREAT | 0666);
@@ -54,9 +60,12 @@ void createSharedMemory(IntArray pIntArray)
 
 // PRE:
 // POST:
-void inputData(istream &pInputFile, bool debugMode)
+void inputData(bool debugMode, istream &pInputFile)
 {
-	cout << "Entered inputData." << endl;
+	if (debugMode)
+	{
+		cout << "Entered inputData." << endl;
+	}
 
 	// Input data from file
 	IntArray data;
@@ -80,43 +89,50 @@ void inputData(istream &pInputFile, bool debugMode)
 	}
 
 	// Store intArray in shared memory
-	createSharedMemory(data);
+	createSharedMemory(debugMode, data);
 }
 
 // PRE:
 // POST:
-void createChildProcesses(int neededProcessesNum)
+void createChildProcesses(bool debugMode, int neededProcessesNum)
 {
-	cout << "Entered createChildProcesses which will make " << neededProcessesNum << " processes." << endl;
+	if (debugMode)
+	{
+		cout << "Entered createChildProcesses which will make " << neededProcessesNum << " processes." << endl;
+	}
+	
 	int children = 0;
 	bool child = false;
-	while(children < neededProcessesNum && !child) {
-		// ASSERT: 
+	while (children < neededProcessesNum && !child)
+	{
+		// ASSERT:
 		pid_t childPID = fork();
-		if(childPID == -1) {
+		if (childPID == -1)
+		{
 			perror("fork");
 		}
 		else if (childPID == 0)
 		{
-			children++;
 			// Child Process
-			child = true;
-			cout << "I am child: " << getpid() << " of parent: " << getppid() << endl;
-		}
-		else 
-		{
 			children++;
+			child = true;
+		}
+		else
+		{
 			// Parent Process
-			cout << "I am: " << getpid() << endl;
+			children++;
 		}
 	}
 }
 
 // PRE:
 // POST:
-void handleJobs()
+void handleJobs(bool debugMode)
 {
-	cout << "Entered handleJobs." << endl;
+	if (debugMode)
+	{
+		cout << getpid() << " Entered handleJobs." << endl;
+	}
 }
 
 // PRE:
@@ -145,16 +161,19 @@ int main(int argc, char **argv)
 				debugMode = false;
 			}
 
-			cout << "number of processes required: " << numProcesses << endl;
+			if (debugMode)
+			{
+				cout << "number of processes required: " << numProcesses << endl;
+			}
 
 			// Input file data into shared memory
-			inputData(inputFile, debugMode);
+			inputData(debugMode, inputFile);
 
 			// Create child processes
-			createChildProcesses(numProcesses - 1);
+			createChildProcesses(debugMode, (numProcesses - 1));
 
 			// Begin handling chunks/jobs
-			handleJobs();
+			handleJobs(debugMode);
 		}
 		else
 		{
