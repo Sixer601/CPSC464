@@ -33,7 +33,7 @@ void createSharedMemory(bool debugMode, IntArray pIntArray, key_t key, int &spac
 	}
 
 	// TODO: Calculate space required for intArray
-	spaceRequired = (sizeof(char) * numChunks) + (sizeof(int) * pIntArray.getContentLength());
+	spaceRequired = ((sizeof(char) * numChunks) + (sizeof(int) * pIntArray.getContentLength()));
 
 	if (debugMode)
 	{
@@ -75,6 +75,14 @@ void createSharedMemory(bool debugMode, IntArray pIntArray, key_t key, int &spac
 			{
 				information[j] = pIntArray.getNthIntInArray(j - numJobs);
 			}
+
+			cout << "Information: ";
+
+			for(int k = 0; k < (pIntArray.getContentLength() + numJobs); k++) 
+			{
+				cout << information[k] << " ";
+			}
+			cout << endl;
 		}
 	}
 }
@@ -166,7 +174,10 @@ void handleJobs(bool debugMode, key_t key, int &spaceRequired, int &numJobs)
 	if ((shmid = shmget(key, spaceRequired, 0666)) < 0)
 	{
 		perror("shmget");
-		exit(1);
+	}
+	else 
+	{
+		
 	}
 
 	/*
