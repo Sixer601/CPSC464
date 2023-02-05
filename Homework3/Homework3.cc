@@ -201,16 +201,16 @@ int createChildProcesses(bool debugMode, int neededChildrenNum, int &childNum)
 			childNum++;
 		}
 	}
-	if(!child)
+	if (!child)
 	{
 		childNum = 0;
 	}
-	return(childNum);
+	return (childNum);
 }
 
 // PRE:
 // POST:
-void handleJobs(bool debugMode, int childNum, key_t jobKey, key_t infoKey, int &jobBoardSpaceRequired, int &infoSpaceRequired)
+void handleJobs(bool debugMode, int childNum, int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int &jobBoardSpaceRequired, int &infoSpaceRequired)
 {
 	int jobBoardSHMid, infoSHMid;
 
@@ -270,13 +270,26 @@ void handleJobs(bool debugMode, int childNum, key_t jobKey, key_t infoKey, int &
 				}
 				else
 				{
-					if(childNum == 0)
+					int startingChunk = ceiling(numChunks, numProcesses) * childNum;
+					if (startingChunk < numChunks)
 					{
-						cout << getpid() << " is the parent." << endl;
-					}
-					else
-					{
-						cout << getpid() << " is child: " << childNum << endl;
+						cout << "Child: " << childNum << " working on chunk: " << startingChunk + 1 << " with data: ";
+						if (((startingChunk * (CHUNKSIZE)) + CHUNKSIZE) > (infoSpaceRequired / sizeof(int)))
+						{
+							for (int i = startingChunk * CHUNKSIZE; i < (infoSpaceRequired / sizeof(int)); i++)
+							{
+								cout << infoSHM[i] << " ";
+							}
+							cout << endl;
+						}
+						else
+						{
+							for (int i = startingChunk * CHUNKSIZE; i < ((startingChunk * (CHUNKSIZE)) + CHUNKSIZE); i++)
+							{
+								cout << i << " ";
+							}
+							cout << endl;
+						}
 					}
 				}
 			}
@@ -326,6 +339,8 @@ int main(int argc, char **argv)
 			// Input file data into shared memory
 			inputData(debugMode, inputFile, informationKey, informationSpaceRequired, numChunks);
 
+			cout << "Numbers in input: " << (informationSpaceRequired / sizeof(int)) << endl;
+
 			// Create Job board to assign jobs to children
 			createJobBoard(debugMode, jobKey, numChunks, jobBoardSpaceRequired);
 
@@ -333,7 +348,7 @@ int main(int argc, char **argv)
 			createChildProcesses(debugMode, numChildren, childNum);
 
 			// Begin handling chunks/jobs
-			handleJobs(debugMode, childNum, jobKey, informationKey, jobBoardSpaceRequired, informationSpaceRequired);
+			handleJobs(debugMode, childNum, numChunks, (numChildren + 1), jobKey, informationKey, jobBoardSpaceRequired, informationSpaceRequired);
 		}
 		else
 		{
