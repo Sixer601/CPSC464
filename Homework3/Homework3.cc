@@ -173,16 +173,15 @@ void inputData(bool debugMode, istream &pInputFile, key_t key, int &spaceRequire
 
 // PRE:
 // POST:
-void createChildProcesses(bool debugMode, int neededProcessesNum)
+int createChildProcesses(bool debugMode, int neededChildrenNum, int &childNum)
 {
 	if (debugMode)
 	{
-		cout << "Entered createChildProcesses which will make " << neededProcessesNum << " processes." << endl;
+		cout << getpid() << " entered createChildProcesses which will make " << neededChildrenNum << " processes." << endl;
 	}
 
-	int children = 0;
 	bool child = false;
-	while (children < neededProcessesNum && !child)
+	while (childNum < neededChildrenNum && !child)
 	{
 		// ASSERT:
 		pid_t childPID = fork();
@@ -193,64 +192,95 @@ void createChildProcesses(bool debugMode, int neededProcessesNum)
 		else if (childPID == 0)
 		{
 			// Child Process
-			children++;
+			childNum++;
 			child = true;
 		}
 		else
 		{
 			// Parent Process
-			children++;
+			childNum++;
 		}
 	}
+	if(!child)
+	{
+		childNum = 0;
+	}
+	return(childNum);
 }
 
 // PRE:
 // POST:
-void handleJobs(bool debugMode, key_t jobKey, int &spaceRequired)
+void handleJobs(bool debugMode, int childNum, key_t jobKey, key_t infoKey, int &jobBoardSpaceRequired, int &infoSpaceRequired)
 {
-	int shmid;
+	int jobBoardSHMid, infoSHMid;
 
 	if (debugMode)
 	{
 		cout << getpid() << " Entered handleJobs with key: " << jobKey << endl;
 	}
 
-	char *shm, *s;
+	char *jobSHM;
+	int *infoSHM;
 
 	/*
-	 * Locate the segment.
+	 * Locate the segment for the job board.
 	 */
-	if ((shmid = shmget(jobKey, spaceRequired, 0666)) < 0)
+	if ((jobBoardSHMid = shmget(jobKey, jobBoardSpaceRequired, 0666)) < 0)
 	{
 		perror("shmget");
 	}
 	else
 	{
 		/*
-		 * Now we attach the segment to our data space.
+		 * Now we attach the segment for the job board to our data space.
 		 */
-		if ((shm = (char *)shmat(shmid, NULL, 0)) == (char *)-1)
+		if ((jobSHM = (char *)shmat(jobBoardSHMid, NULL, 0)) == (char *)-1)
 		{
 			perror("shmat");
-			exit(1);
 		}
-
-		/*
-		 * Now read what the server put in the memory.
-		 */
-		if (debugMode)
+		else
 		{
-			cout << "Jobs: ";
-
-			for (int i = 0; i < (spaceRequired / sizeof(char)); i++)
+			if (debugMode)
 			{
-				cout << shm[i] << " ";
+				cout << "Jobs: ";
+
+				for (int i = 0; i < (jobBoardSpaceRequired / sizeof(char)); i++)
+				{
+					cout << jobSHM[i] << " ";
+				}
+
+				cout << endl;
 			}
 
-			cout << endl;
+			/*
+			 * Locate the segment for the information.
+			 */
+			if ((infoSHMid = shmget(infoKey, infoSpaceRequired, 0666)) < 0)
+			{
+				perror("shmget");
+			}
+			else
+			{
+				/*
+				 * Now we attach the segment for the information to our data space.
+				 */
+				if ((infoSHM = (int *)shmat(infoSHMid, NULL, 0)) == (int *)-1)
+				{
+					perror("shmat");
+				}
+				else
+				{
+					if(childNum == 0)
+					{
+						cout << getpid() << " is the parent." << endl;
+					}
+					else
+					{
+						cout << getpid() << " is child: " << childNum << endl;
+					}
+				}
+			}
 		}
-
-
 	}
 }
 
@@ -266,14 +296,15 @@ int main(int argc, char **argv)
 	else
 	{
 		bool debugMode;
-		int numProcesses = stoi(argv[1]);
+		int numChildren = stoi(argv[1]);
 		ifstream inputFile(argv[2]);
 		int thirdArg = stoi(argv[3]);
-		key_t key = 914615;
+		key_t informationKey = 914615;
 		key_t jobKey = 10152;
 		int informationSpaceRequired = 0;
 		int jobBoardSpaceRequired = 0;
 		int numChunks = 0;
+		int childNum = 0;
 		if (thirdArg == 1 || thirdArg == 0)
 		{
 			if (thirdArg == 1)
@@ -287,21 +318,22 @@ int main(int argc, char **argv)
 
 			if (debugMode)
 			{
-				cout << "number of processes required: " << numProcesses << endl;
-				cout << "key: " << key << endl;
+				cout << "number of children required: " << numChildren << endl;
+				cout << "information key: " << informationKey << endl;
+				cout << "job key: " << jobKey << endl;
 			}
 
 			// Input file data into shared memory
-			inputData(debugMode, inputFile, key, informationSpaceRequired, numChunks);
+			inputData(debugMode, inputFile, informationKey, informationSpaceRequired, numChunks);
 
 			// Create Job board to assign jobs to children
 			createJobBoard(debugMode, jobKey, numChunks, jobBoardSpaceRequired);
 
 			// Create child processes
-			createChildProcesses(debugMode, (numProcesses - 1));
+			createChildProcesses(debugMode, numChildren, childNum);
 
 			// Begin handling chunks/jobs
-			handleJobs(debugMode, jobKey, jobBoardSpaceRequired);
+			handleJobs(debugMode, childNum, jobKey, informationKey, jobBoardSpaceRequired, informationSpaceRequired);
 		}
 		else
 		{
