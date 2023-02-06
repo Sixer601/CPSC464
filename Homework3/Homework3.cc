@@ -12,148 +12,181 @@ using namespace std;
 
 #define CHUNKSIZE 100
 
-// PRE:
-// POST:
+// PRE: jobKey is a defined key that represents the identifier for the shared
+//      memory that the job board resides at. numChunks is a defined integer
+//      that represents the number of chunks that the information being sorted
+//      can be broken into. jobBoardSpaceRequired is a defined integer that
+//      represents the number of bytes required to store the jobBoard.
+// POST: There is a location in shared memory that is sized at the number of 
+//       bytes equal to jobBoardSpaceRequired. This memory's key is equal to
+//       jobKey.
 void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
 {
-	int jobBoard_mem_id; //
-	// ASSERT: 
-	char *shm; //
-	// ASSERT: 
-	char *jobs; //
-	// ASSERT: 
-	int numJobs = numChunks + ceiling(numChunks, 2); //
-	// ASSERT: 
+	int jobBoard_mem_id; // identifier that aids in creating a space in shared
+					 // memory creation.
+	// ASSERT: jobBoard_mem_id is undefined.
+	char *shm; // pointer to shared memory for once it is created.
+	// ASSERT: shm is undefined.
+	char *jobs; // pointer to reference items in shared memory.
+	// ASSERT: jobs is undefined.
+	int numJobs = numChunks + ceiling(numChunks, 2); // represents the number
+										    // of jobs to be completed.
+	// ASSERT: numJobs is equal to the sum of the number of chunks and the 
+	//         ceiling of half of the number of chunks.
 	jobBoardSpaceRequired = (sizeof(char) * numJobs);
-	// ASSERT: 
+	// ASSERT: jobBoardSpaceRequired is the size of a character for each job.
 	jobBoard_mem_id = shmget(jobKey, jobBoardSpaceRequired, IPC_CREAT | 0666);
-	// ASSERT: 
+
 	if (jobBoard_mem_id < 0)
-	// ASSERT: 
+	// ASSERT: jobBoard_mem_id is less than 0.
 	{
 		perror("shmget");
 	}
 	else
 	{
 		shm = (char *)shmat(jobBoard_mem_id, NULL, 0);
-		// ASSERT: 
+		// ASSERT: shm is a pointer to the memory location at jobBoard_mem_id.
 		if (shm == (char *)-1)
-		// ASSERT: 
+		// ASSERT: shm is a NULL pointer.
 		{
 			perror("shmat");
 		}
 		else
 		{
 			jobs = shm;
-			// ASSERT: 
+			// ASSERT: jobs points to the same location in memory that shm does.
 			for (int i = 0; i < numChunks; i++)
-			// ASSERT: 
+			// ASSERT: i is less than the number of chunks in the information.
 			{
 				jobs[i] = 'S';
-				// ASSERT: 
+				// ASSERT: the ith job is a sorting job.
 			}
 
 			for (int j = numChunks; j < numJobs; j++)
-			// ASSERT: 
+			// ASSERT: j is in the range (numChunks, numJobs].
 			{
 				jobs[j] = 'M';
-				// ASSERT: 
+				// ASSERT: the ith job is a merging job.
 			}
 		}
 	}
 }
 
-// PRE:
-// POST:
-void createSharedMemory(IntArray pIntArray, key_t key, int &informationSpaceRequired, int &numChunks)
+// PRE: pIntArray is a defined IntArray object that contains the stored information. infoKey is a defined
+//      key object that represents the identifier to access the shared memory that will contain the
+//      information. informationSpaceRequired is a defined integer that represents the number of bytes
+//      required to store what pIntArray contains. numChunks is a defined integer that represents the
+//      number of chunks the information stored in pIntArray can be broken into.
+// POST: There is a location in shared memory that is sized at the number of 
+//       bytes equal to informationSpaceRequired. This memory's key is equal to infoKey.
+void createSharedMemory(IntArray pIntArray, key_t infoKey, int &informationSpaceRequired, int &numChunks)
 {
-	int shared_mem_id; //
-	// ASSERT: 
-	int *shm; //
-	// ASSERT: 
-	int *information; //
-	// ASSERT: 
+	int shared_mem_id; // identifier that aids in shared memory creation.
+	// ASSERT: shared_mem_id is undefined.
+	int *shm; // pointer to shared memory.
+	// ASSERT: shm is undefined.
+	int *information; // pointer to information being stored in shared memory.
+	// ASSERT: information is undefined.
 	numChunks = ceiling(pIntArray.getContentLength(), CHUNKSIZE);
-	// ASSERT: 
+	// ASSERT: numChunks is equal to the ceiling of the quotient of the RV of getContentLength for
+	//         pIntArray and the predefined constant CHUNKSIZE.
 	informationSpaceRequired = ((sizeof(int) * (pIntArray.getContentLength())));
-	// ASSERT: 
-	shared_mem_id = shmget(key, informationSpaceRequired, IPC_CREAT | 0666);
-	// ASSERT: 
+	// ASSERT: informationSpaceRequired is equal to the size in bytes of an int for each int in
+	//         pIntArray.
+	shared_mem_id = shmget(infoKey, informationSpaceRequired, IPC_CREAT | 0666);
+	// ASSERT: shared_mem_id is the RV of shmget.
 	if (shared_mem_id < 0)
-	// ASSERT: 
+	// ASSERT: shared_mem_id is less than 0
 	{
 		perror("shmget");
 	}
 	else
 	{
 		shm = (int *)shmat(shared_mem_id, NULL, 0);
-		// ASSERT: 
+		// ASSERT: shm points to the memory stored at the address that shared_mem_id holds.
 		if (shm == (int *)-1)
-		// ASSERT: 
+		// ASSERT: shm is a NULL pointer.
 		{
 			perror("shmat");
 		}
 		else
 		{
 			information = shm;
-			// ASSERT: 
+			// ASSERT: information points to the same location in memory as shm.
 			for (int j = 0; j < pIntArray.getContentLength(); j++)
-			// ASSERT: 
+			// ASSERT: j is less than the number of items in pIntArray.
 			{
 				information[j] = pIntArray.getNthIntInArray(j);
-				// ASSERT: 
+				// ASSERT: the jth index of information is equal to the jth integer in 
+				//         pIntArray.
 			}
 		}
 	}
 }
 
-// PRE:
-// POST:
-void inputData(istream &pInputFile, key_t key, int &spaceRequired, int &numChunks)
+// PRE: pInputFile is a defined input stream that contains the input file. infoKey is a defined
+//      key that represents the identifier for the shared information in which the information
+//      within pInputFile will be stored. spaceRequired is a defined integer that represents
+//      the number of bytes required to store the information from pInputFile. numChunks is a
+//      defined integer that represents the number of chunks the information can be broken up
+//      into.
+// POST: In shared memory, identified by infoKey, the contents of pInputFile are stored.
+//       spaceRequired and numChunks are updated to represent the number of bytes that the
+//       file contents take up in shared memory, and the number of chunks the information can
+//       be broken up into.
+void inputData(istream &pInputFile, key_t infoKey, int &spaceRequired, int &numChunks)
 {
-	IntArray data; //
-	// ASSERT: 
+	IntArray data; // array of integers to store data from file.
+	// ASSERT: data is an integer array constructed using the default constructor.
 	while (pInputFile.peek() != EOF)
-	// ASSERT: 
+	// ASSERT: the next character in the file is not the end of file character.
 	{
-		int datum; //
-		// ASSERT: 
+		int datum; // a single number from the input file.
+		// ASSERT: datum is undefined.
 		pInputFile >> datum;
 		data.addInt(datum);
 	}
-	createSharedMemory(data, key, spaceRequired, numChunks);
+	createSharedMemory(data, infoKey, spaceRequired, numChunks);
 }
 
-// PRE:
-// POST:
+// PRE: neededChildrenNum is a defined integer that represents the number of child processes
+//      requested by the user. childNum is a defined integer that represents a unique number
+//      each process is given. The parent process contains a childNum of 0.
+// POST: There are x+1 processes running the code following this function, where x is equal
+//       to neededChildrenNum. Each of these processes contains a unique number, starting at
+//       0, to denote which child they are relative to each other.
 int createChildProcesses(int neededChildrenNum, int &childNum)
 {
-	bool child = false; // 
-	// ASSERT: 
+	bool child = false; // identifier for if the process is a child process.
+	// ASSERT: child begins as false, as the only process running this code is the parent
+	//         process.
 	while (childNum < neededChildrenNum && !child)
-	// ASSERT: 
+	// ASSERT: the current identifier of the process is less than the number of children
+	//         needed, and the current process does not have the child flag.
 	{
-		pid_t childPID = fork(); //
-		// ASSERT: 
+		pid_t childPID = fork(); // childPID contains 0 if it is a child process, the
+							// process ID of the parent process based on what the
+							// computer gave it at the time of initialization, or
+							// -1 if there was an error.
 		if (childPID == -1)
-		// ASSERT: 
+		// ASSERT: childPID has a process number of -1.
 		{
 			perror("fork");
 		}
 		else if (childPID == 0)
-		// ASSERT: 
+		// ASSERT: the current process is a child process.
 		{
 			child = true;
-			// ASSERT: 
+			// ASSERT: the child flag is set to true.
 		}
 		childNum++;
-		// ASSERT: 
+		// ASSERT: childNum is incremented by 1.
 	}
 	if (!child)
-	// ASSERT: 
+	// ASSERT: the current process is the parent process.
 	{
 		childNum = 0;
-		// ASSERT: 
+		// ASSERT: childNum is reset to 0.
 	}
 	return (childNum);
 }
@@ -165,30 +198,32 @@ int createChildProcesses(int neededChildrenNum, int &childNum)
 // POST:
 void handleJobs(int childNum, int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int &jobBoardSpaceRequired, int &infoSpaceRequired)
 {
-	int jobBoardSHMid; //
-	// ASSERT:
-	int infoSHMid; //
-	// ASSERT:
-	char *jobSHM; //
-	// ASSERT:
-	int *infoSHM; //
-	// ASSERT:
+	int jobBoardSHMid; // the identifier for the job board shared memory.
+	// ASSERT: jobBoardSHMid is undefined.
+	int infoSHMid; // the indentifier for the information shared memory.
+	// ASSERT: infoSHMid is undefined.
+	char *jobSHM; // the pointer to the job board shared memory.
+	// ASSERT: jobSHM points to nothing.
+	int *infoSHM; // the pointer to the information shared memory.
+	// ASSERT: infoSHM points to nothing.
 	if ((jobBoardSHMid = shmget(jobKey, jobBoardSpaceRequired, 0666)) < 0)
-	// ASSERT:
+	// ASSERT: jobBoardSHMid is less than 0.
 	{
 		perror("shmget");
 	}
 	else
 	{
-		if ((jobSHM = (char *)shmat(jobBoardSHMid, NULL, 0)) == (char *)-1)
-		// ASSERT:
+		jobSHM = (char *)shmat(jobBoardSHMid, NULL, 0);
+		// ASSERT;
+		if (jobSHM == (char *)-1)
+		// ASSERT: jobSHM is a NULL pointer. 
 		{
 			perror("shmat");
 		}
 		else
 		{
 			if ((infoSHMid = shmget(infoKey, infoSpaceRequired, 0666)) < 0)
-			// ASSERT:
+			// ASSERT: infoSHMid
 			{
 				perror("shmget");
 			}
