@@ -14,40 +14,50 @@ using namespace std;
 
 // PRE:
 // POST:
-void createJobBoard(bool debugMode, key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
+void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
 {
-	int jobBoard_mem_id;
-
-	char *shm, *jobs;
-
-	int numJobs = numChunks + ceiling(numChunks, 2);
-
+	int jobBoard_mem_id; //
+	// ASSERT: 
+	char *shm; //
+	// ASSERT: 
+	char *jobs; //
+	// ASSERT: 
+	int numJobs = numChunks + ceiling(numChunks, 2); //
+	// ASSERT: 
 	jobBoardSpaceRequired = (sizeof(char) * numJobs);
-
+	// ASSERT: 
 	jobBoard_mem_id = shmget(jobKey, jobBoardSpaceRequired, IPC_CREAT | 0666);
+	// ASSERT: 
 	if (jobBoard_mem_id < 0)
+	// ASSERT: 
 	{
 		perror("shmget");
 	}
 	else
 	{
 		shm = (char *)shmat(jobBoard_mem_id, NULL, 0);
+		// ASSERT: 
 		if (shm == (char *)-1)
+		// ASSERT: 
 		{
 			perror("shmat");
 		}
 		else
 		{
 			jobs = shm;
-
+			// ASSERT: 
 			for (int i = 0; i < numChunks; i++)
+			// ASSERT: 
 			{
 				jobs[i] = 'S';
+				// ASSERT: 
 			}
 
 			for (int j = numChunks; j < numJobs; j++)
+			// ASSERT: 
 			{
 				jobs[j] = 'M';
+				// ASSERT: 
 			}
 		}
 	}
@@ -55,46 +65,43 @@ void createJobBoard(bool debugMode, key_t jobKey, int &numChunks, int &jobBoardS
 
 // PRE:
 // POST:
-void createSharedMemory(bool debugMode, IntArray pIntArray, key_t key, int &informationSpaceRequired, int &numChunks)
+void createSharedMemory(IntArray pIntArray, key_t key, int &informationSpaceRequired, int &numChunks)
 {
-	int shared_mem_id;
-
-	int *shm, *information;
-
+	int shared_mem_id; //
+	// ASSERT: 
+	int *shm; //
+	// ASSERT: 
+	int *information; //
+	// ASSERT: 
 	numChunks = ceiling(pIntArray.getContentLength(), CHUNKSIZE);
-
+	// ASSERT: 
 	informationSpaceRequired = ((sizeof(int) * (pIntArray.getContentLength())));
-
+	// ASSERT: 
 	shared_mem_id = shmget(key, informationSpaceRequired, IPC_CREAT | 0666);
+	// ASSERT: 
 	if (shared_mem_id < 0)
+	// ASSERT: 
 	{
 		perror("shmget");
 	}
 	else
 	{
 		shm = (int *)shmat(shared_mem_id, NULL, 0);
+		// ASSERT: 
 		if (shm == (int *)-1)
+		// ASSERT: 
 		{
 			perror("shmat");
 		}
 		else
 		{
 			information = shm;
-
+			// ASSERT: 
 			for (int j = 0; j < pIntArray.getContentLength(); j++)
+			// ASSERT: 
 			{
 				information[j] = pIntArray.getNthIntInArray(j);
-			}
-
-			if (debugMode)
-			{
-				cout << "Information: ";
-
-				for (int k = 0; k < pIntArray.getContentLength(); k++)
-				{
-					cout << information[k] << " ";
-				}
-				cout << endl;
+				// ASSERT: 
 			}
 		}
 	}
@@ -102,105 +109,109 @@ void createSharedMemory(bool debugMode, IntArray pIntArray, key_t key, int &info
 
 // PRE:
 // POST:
-void inputData(bool debugMode, istream &pInputFile, key_t key, int &spaceRequired, int &numChunks)
+void inputData(istream &pInputFile, key_t key, int &spaceRequired, int &numChunks)
 {
-	if (debugMode)
-	{
-		cout << "Entered inputData." << endl;
-	}
-
-	IntArray data;
+	IntArray data; //
+	// ASSERT: 
 	while (pInputFile.peek() != EOF)
+	// ASSERT: 
 	{
-		int datum;
+		int datum; //
+		// ASSERT: 
 		pInputFile >> datum;
 		data.addInt(datum);
 	}
-
-	createSharedMemory(debugMode, data, key, spaceRequired, numChunks);
+	createSharedMemory(data, key, spaceRequired, numChunks);
 }
 
 // PRE:
 // POST:
-int createChildProcesses(bool debugMode, int neededChildrenNum, int &childNum)
+int createChildProcesses(int neededChildrenNum, int &childNum)
 {
-	bool child = false;
+	bool child = false; // 
+	// ASSERT: 
 	while (childNum < neededChildrenNum && !child)
+	// ASSERT: 
 	{
-		pid_t childPID = fork();
+		pid_t childPID = fork(); //
+		// ASSERT: 
 		if (childPID == -1)
+		// ASSERT: 
 		{
 			perror("fork");
 		}
 		else if (childPID == 0)
+		// ASSERT: 
 		{
-			childNum++;
 			child = true;
+			// ASSERT: 
 		}
-		else
-		{
-			childNum++;
-		}
+		childNum++;
+		// ASSERT: 
 	}
 	if (!child)
+	// ASSERT: 
 	{
 		childNum = 0;
+		// ASSERT: 
 	}
 	return (childNum);
 }
 
-// PRE:
+// PRE: childNum is a defined integer that represents which child the current process running this function is. numChunks is a defined integer
+//      that represents the number of chunks needing to be sorted. numProcesses is a defined integer that represents the number of processes
+//      the overall program is utilizing. jobKey is a defined key that is used in accessing the memory that stores the job information for the
+//      processes. infoKey is a defined key that is used in accessing the numbers that need to be handled by the different jobs.
 // POST:
-void handleJobs(bool debugMode, int childNum, int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int &jobBoardSpaceRequired, int &infoSpaceRequired)
+void handleJobs(int childNum, int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int &jobBoardSpaceRequired, int &infoSpaceRequired)
 {
-	int jobBoardSHMid, infoSHMid;
-
-	char *jobSHM;
-	int *infoSHM;
-
+	int jobBoardSHMid; //
+	// ASSERT:
+	int infoSHMid; //
+	// ASSERT:
+	char *jobSHM; //
+	// ASSERT:
+	int *infoSHM; //
+	// ASSERT:
 	if ((jobBoardSHMid = shmget(jobKey, jobBoardSpaceRequired, 0666)) < 0)
+	// ASSERT:
 	{
 		perror("shmget");
 	}
 	else
 	{
 		if ((jobSHM = (char *)shmat(jobBoardSHMid, NULL, 0)) == (char *)-1)
+		// ASSERT:
 		{
 			perror("shmat");
 		}
 		else
 		{
 			if ((infoSHMid = shmget(infoKey, infoSpaceRequired, 0666)) < 0)
+			// ASSERT:
 			{
 				perror("shmget");
 			}
 			else
 			{
 				if ((infoSHM = (int *)shmat(infoSHMid, NULL, 0)) == (int *)-1)
+				// ASSERT:
 				{
 					perror("shmat");
 				}
 				else
 				{
-					int startingChunk = ceiling(numChunks, numProcesses) * childNum;
+					int startingChunk = ceiling(numChunks, numProcesses) * childNum; //
+					// ASSERT:
 					if (startingChunk < numChunks)
+					// ASSERT:
 					{
-						cout << "Child: " << childNum << " working on chunk: " << startingChunk + 1 << " with data: ";
 						if (((startingChunk * (CHUNKSIZE)) + CHUNKSIZE) > (infoSpaceRequired / sizeof(int)))
+						// ASSERT:
 						{
-							for (int i = startingChunk * CHUNKSIZE; i < (infoSpaceRequired / sizeof(int)); i++)
-							{
-								cout << infoSHM[i] << " ";
-							}
-							cout << endl;
 						}
 						else
 						{
-							for (int i = startingChunk * CHUNKSIZE; i < ((startingChunk * (CHUNKSIZE)) + CHUNKSIZE); i++)
-							{
-								cout << i << " ";
-							}
-							cout << endl;
 						}
 					}
 				}
@@ -209,32 +220,38 @@ void handleJobs(bool debugMode, int childNum, int numChunks, int numProcesses, k
 	}
 }
 
-// PRE:
+// PRE: argc contains the number of arguments passed to the program. argv are the arguments passed to the program.
 // POST:
 int main(int argc, char **argv)
 {
-
 	if (argc != 3)
+	// ASSERT:
 	{
 		cout << "Invalid number of arguments." << endl;
 	}
 	else
 	{
-		bool debugMode;
-		int numChildren = stoi(argv[2]);
-		ifstream inputFile(argv[1]);
-		key_t informationKey = 914615;
-		key_t jobKey = 10152;
-		int informationSpaceRequired = 0;
-		int jobBoardSpaceRequired = 0;
-		int numChunks = 0;
-		int childNum = 0;
+		int numChildren = stoi(argv[2]); //
+		// ASSERT:
+		ifstream inputFile(argv[1]); //
+		// ASSERT:
+		key_t informationKey = 914615; //
+		// ASSERT:
+		key_t jobKey = 10152; //
+		// ASSERT:
+		int informationSpaceRequired = 0; //
+		// ASSERT:
+		int jobBoardSpaceRequired = 0; //
+		// ASSERT:
+		int numChunks = 0; //
+		// ASSERT:
+		int childNum = 0; //
+		// ASSERT:
 
-		inputData(debugMode, inputFile, informationKey, informationSpaceRequired, numChunks);
-		createJobBoard(debugMode, jobKey, numChunks, jobBoardSpaceRequired);
-		createChildProcesses(debugMode, numChildren, childNum);
-		handleJobs(debugMode, childNum, numChunks, (numChildren + 1), jobKey, informationKey, jobBoardSpaceRequired, informationSpaceRequired);
+		inputData(inputFile, informationKey, informationSpaceRequired, numChunks);
+		createJobBoard(jobKey, numChunks, jobBoardSpaceRequired);
+		createChildProcesses(numChildren, childNum);
+		handleJobs(childNum, numChunks, (numChildren + 1), jobKey, informationKey, jobBoardSpaceRequired, informationSpaceRequired);
 	}
-
 	return (0);
 }
