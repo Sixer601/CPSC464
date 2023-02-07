@@ -6,7 +6,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "IntArray.h"
+#include "ChunkJob.h"
 #include "HelperFunctions.h"
+#include "Exception.h"
 
 using namespace std;
 
@@ -25,15 +27,11 @@ void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
 	int jobBoard_mem_id; // identifier that aids in creating a space in shared
 					 // memory creation.
 	// ASSERT: jobBoard_mem_id is undefined.
-	char *shm; // pointer to shared memory for once it is created.
+	ChunkJob *shm; // pointer to shared memory for once it is created.
 	// ASSERT: shm is undefined.
-	char *jobs; // pointer to reference items in shared memory.
+	ChunkJob *jobs; // pointer to reference items in shared memory.
 	// ASSERT: jobs is undefined.
-	int numJobs = numChunks + ceiling(numChunks, 2); // represents the number
-										    // of jobs to be completed.
-	// ASSERT: numJobs is equal to the sum of the number of chunks and the 
-	//         ceiling of half of the number of chunks.
-	jobBoardSpaceRequired = (sizeof(char) * numJobs);
+	jobBoardSpaceRequired = (sizeof(ChunkJob) * numChunks);
 	// ASSERT: jobBoardSpaceRequired is the size of a character for each job.
 	jobBoard_mem_id = shmget(jobKey, jobBoardSpaceRequired, IPC_CREAT | 0666);
 
@@ -44,9 +42,9 @@ void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
 	}
 	else
 	{
-		shm = (char *)shmat(jobBoard_mem_id, NULL, 0);
+		shm = (ChunkJob *)shmat(jobBoard_mem_id, NULL, 0);
 		// ASSERT: shm is a pointer to the memory location at jobBoard_mem_id.
-		if (shm == (char *)-1)
+		if (shm == (ChunkJob *)-1)
 		// ASSERT: shm is a NULL pointer.
 		{
 			perror("shmat");
@@ -58,15 +56,8 @@ void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
 			for (int i = 0; i < numChunks; i++)
 			// ASSERT: i is less than the number of chunks in the information.
 			{
-				jobs[i] = 'S';
-				// ASSERT: the ith job is a sorting job.
-			}
-
-			for (int j = numChunks; j < numJobs; j++)
-			// ASSERT: j is in the range (numChunks, numJobs].
-			{
-				jobs[j] = 'M';
-				// ASSERT: the ith job is a merging job.
+				ChunkJob temp(i, i, 2);
+				jobs[i] = temp;
 			}
 		}
 	}
@@ -202,7 +193,7 @@ void handleJobs(int childNum, int numChunks, int numProcesses, key_t jobKey, key
 	// ASSERT: jobBoardSHMid is undefined.
 	int infoSHMid; // the indentifier for the information shared memory.
 	// ASSERT: infoSHMid is undefined.
-	char *jobSHM; // the pointer to the job board shared memory.
+	ChunkJob *jobSHM; // the pointer to the job board shared memory.
 	// ASSERT: jobSHM points to nothing.
 	int *infoSHM; // the pointer to the information shared memory.
 	// ASSERT: infoSHM points to nothing.
@@ -213,9 +204,9 @@ void handleJobs(int childNum, int numChunks, int numProcesses, key_t jobKey, key
 	}
 	else
 	{
-		jobSHM = (char *)shmat(jobBoardSHMid, NULL, 0);
+		jobSHM = (ChunkJob *)shmat(jobBoardSHMid, NULL, 0);
 		// ASSERT;
-		if (jobSHM == (char *)-1)
+		if (jobSHM == (ChunkJob *)-1)
 		// ASSERT: jobSHM is a NULL pointer. 
 		{
 			perror("shmat");
@@ -236,19 +227,7 @@ void handleJobs(int childNum, int numChunks, int numProcesses, key_t jobKey, key
 				}
 				else
 				{
-					int startingChunk = ceiling(numChunks, numProcesses) * childNum; //
-					// ASSERT:
-					if (startingChunk < numChunks)
-					// ASSERT:
-					{
-						if (((startingChunk * (CHUNKSIZE)) + CHUNKSIZE) > (infoSpaceRequired / sizeof(int)))
-						// ASSERT:
-						{
-						}
-						else
-						{
-						}
-					}
+
 				}
 			}
 		}

@@ -33,6 +33,12 @@ public:
 	// POST: 
 	ChunkJob();
 
+	// Informed Constructor
+
+	// PRE: 
+	// POST: 
+	ChunkJob(int pChunk1, int pChunk2, int pJobStatus);
+
 	// Copy Constructor
 
 	// PRE: 

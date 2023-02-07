@@ -18,6 +18,17 @@ using namespace std;
 		jobStatus = 0;
 	}
 
+	// Informed Constructor
+
+	// PRE: 
+	// POST: 
+	ChunkJob::ChunkJob(int pChunk1, int pChunk2, int pJobStatus)
+	{
+		chunk1 = pChunk1;
+		chunk2 = pChunk2;
+		jobStatus = pJobStatus;
+	}
+
 	// Copy Constructor
 
 	// PRE: 
