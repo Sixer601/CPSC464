@@ -189,6 +189,7 @@ int createChildProcesses(int neededChildrenNum, int &childNum)
 // POST:
 void handleJobs(int childNum, int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int &jobBoardSpaceRequired, int &infoSpaceRequired)
 {
+	cout << getpid() << " entered handleJobs" << endl;
 	int jobBoardSHMid; // the identifier for the job board shared memory.
 	// ASSERT: jobBoardSHMid is undefined.
 	int infoSHMid; // the indentifier for the information shared memory.
