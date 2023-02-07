@@ -9,10 +9,9 @@
 #include "ChunkJob.h"
 #include "HelperFunctions.h"
 #include "Exception.h"
+#include "Constants.h"
 
 using namespace std;
-
-#define CHUNKSIZE 100
 
 // PRE: jobKey is a defined key that represents the identifier for the shared
 //      memory that the job board resides at. numChunks is a defined integer
@@ -186,10 +185,10 @@ int createChildProcesses(int neededChildrenNum, int &childNum)
 //      that represents the number of chunks needing to be sorted. numProcesses is a defined integer that represents the number of processes
 //      the overall program is utilizing. jobKey is a defined key that is used in accessing the memory that stores the job information for the
 //      processes. infoKey is a defined key that is used in accessing the numbers that need to be handled by the different jobs.
-// POST:
+// POST: the information at shared memory accessed with key "infoKey" is in sorted order. all ChunkJobs stored at shared memory accessed with 
+//       key "jobKey" have a job status that denotes completion.
 void handleJobs(int childNum, int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int &jobBoardSpaceRequired, int &infoSpaceRequired)
 {
-	cout << getpid() << " entered handleJobs" << endl;
 	int jobBoardSHMid; // the identifier for the job board shared memory.
 	// ASSERT: jobBoardSHMid is undefined.
 	int infoSHMid; // the indentifier for the information shared memory.
@@ -198,6 +197,18 @@ void handleJobs(int childNum, int numChunks, int numProcesses, key_t jobKey, key
 	// ASSERT: jobSHM points to nothing.
 	int *infoSHM; // the pointer to the information shared memory.
 	// ASSERT: infoSHM points to nothing.
+
+	try
+	{
+		
+	}
+	catch(Exception err)
+	{
+		err.handle();
+	}
+	
+
+
 	if ((jobBoardSHMid = shmget(jobKey, jobBoardSpaceRequired, 0666)) < 0)
 	// ASSERT: jobBoardSHMid is less than 0.
 	{
@@ -206,7 +217,9 @@ void handleJobs(int childNum, int numChunks, int numProcesses, key_t jobKey, key
 	else
 	{
 		jobSHM = (ChunkJob *)shmat(jobBoardSHMid, NULL, 0);
-		// ASSERT;
+		// ASSERT: jobSHM is -1 if there was an error attatching to the shared
+		//         memory identified by jobBoardSHMid. Otherwise, jobSHM points
+		//         to the shared memory identified by jobBoardSHMid.
 		if (jobSHM == (ChunkJob *)-1)
 		// ASSERT: jobSHM is a NULL pointer. 
 		{
