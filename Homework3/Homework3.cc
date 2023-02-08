@@ -13,12 +13,46 @@
 
 using namespace std;
 
+// PRE:
+// POST:
+void createSharedMemory(key_t pKey, int pSpaceRequired, int &memoryID)
+{
+	memoryID = shmget(pKey, pSpaceRequired, IPC_CREAT | 0666);
+	if (memoryID < -1)
+	{
+		throw(Exception((char *)"Problem allocating shared memory segment."));
+	}
+}
+
+// PRE:
+// POST:
+void accessSharedMemory(key_t pKey, int pSpaceRequired, int &memoryID)
+{
+	memoryID = shmget(pKey, pSpaceRequired, 0666);
+	if (memoryID == -1)
+	{
+		throw(Exception((char *)"Problem accessing shared memory segment."));
+	}
+}
+
+// PRE:
+// POST:
+template <typename T>
+void attachToSharedMemory(T *shm, int &memoryID)
+{
+	shm = (T *)shmat(memoryID, NULL, 0);
+	if (shm == (T *)-1)
+	{
+		throw(Exception((char *)"Problem attaching to shared memory segment."));
+	}
+}
+
 // PRE: jobKey is a defined key that represents the identifier for the shared
 //      memory that the job board resides at. numChunks is a defined integer
 //      that represents the number of chunks that the information being sorted
 //      can be broken into. jobBoardSpaceRequired is a defined integer that
 //      represents the number of bytes required to store the jobBoard.
-// POST: There is a location in shared memory that is sized at the number of 
+// POST: There is a location in shared memory that is sized at the number of
 //       bytes equal to jobBoardSpaceRequired. This memory's key is equal to
 //       jobKey.
 void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
@@ -32,33 +66,23 @@ void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
 	// ASSERT: jobs is undefined.
 	jobBoardSpaceRequired = (sizeof(ChunkJob) * numChunks);
 	// ASSERT: jobBoardSpaceRequired is the size of a character for each job.
-	jobBoard_mem_id = shmget(jobKey, jobBoardSpaceRequired, IPC_CREAT | 0666);
 
-	if (jobBoard_mem_id < 0)
-	// ASSERT: jobBoard_mem_id is less than 0.
+	try
 	{
-		perror("shmget");
+		createSharedMemory(jobKey, jobBoardSpaceRequired, jobBoard_mem_id);
+		attachToSharedMemory<ChunkJob>(shm, jobBoard_mem_id);
+		jobs = shm;
+		// ASSERT: jobs points to the same location in memory that shm does.
+		for (int i = 0; i < numChunks; i++)
+		// ASSERT: i is less than the number of chunks in the information.
+		{
+			ChunkJob temp(i, i, UNSORTED);
+			jobs[i] = temp;
+		}
 	}
-	else
+	catch (Exception error)
 	{
-		shm = (ChunkJob *)shmat(jobBoard_mem_id, NULL, 0);
-		// ASSERT: shm is a pointer to the memory location at jobBoard_mem_id.
-		if (shm == (ChunkJob *)-1)
-		// ASSERT: shm is a NULL pointer.
-		{
-			perror("shmat");
-		}
-		else
-		{
-			jobs = shm;
-			// ASSERT: jobs points to the same location in memory that shm does.
-			for (int i = 0; i < numChunks; i++)
-			// ASSERT: i is less than the number of chunks in the information.
-			{
-				ChunkJob temp(i, i, 2);
-				jobs[i] = temp;
-			}
-		}
+		error.handle();
 	}
 }
 
@@ -67,7 +91,7 @@ void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
 //      information. informationSpaceRequired is a defined integer that represents the number of bytes
 //      required to store what pIntArray contains. numChunks is a defined integer that represents the
 //      number of chunks the information stored in pIntArray can be broken into.
-// POST: There is a location in shared memory that is sized at the number of 
+// POST: There is a location in shared memory that is sized at the number of
 //       bytes equal to informationSpaceRequired. This memory's key is equal to infoKey.
 void createSharedMemory(IntArray pIntArray, key_t infoKey, int &informationSpaceRequired, int &numChunks)
 {
@@ -83,34 +107,24 @@ void createSharedMemory(IntArray pIntArray, key_t infoKey, int &informationSpace
 	informationSpaceRequired = ((sizeof(int) * (pIntArray.getContentLength())));
 	// ASSERT: informationSpaceRequired is equal to the size in bytes of an int for each int in
 	//         pIntArray.
-	shared_mem_id = shmget(infoKey, informationSpaceRequired, IPC_CREAT | 0666);
-	// ASSERT: shared_mem_id is the RV of shmget.
-	if (shared_mem_id < 0)
-	// ASSERT: shared_mem_id is less than 0
+
+	try
 	{
-		perror("shmget");
+		createSharedMemory(infoKey, informationSpaceRequired, shared_mem_id);
+		attachToSharedMemory<int>(shm, shared_mem_id);
+		information = shm;
+		// ASSERT: information points to the same location in memory as shm.
+		for (int i = 0; i < pIntArray.getContentLength(); i++)
+		// ASSERT: j is less than the number of items in pIntArray.
+		{
+			information[i] = pIntArray.getNthIntInArray(i);
+			// ASSERT: the jth index of information is equal to the jth integer in
+			//         pIntArray.
+		}
 	}
-	else
+	catch (Exception error)
 	{
-		shm = (int *)shmat(shared_mem_id, NULL, 0);
-		// ASSERT: shm points to the memory stored at the address that shared_mem_id holds.
-		if (shm == (int *)-1)
-		// ASSERT: shm is a NULL pointer.
-		{
-			perror("shmat");
-		}
-		else
-		{
-			information = shm;
-			// ASSERT: information points to the same location in memory as shm.
-			for (int j = 0; j < pIntArray.getContentLength(); j++)
-			// ASSERT: j is less than the number of items in pIntArray.
-			{
-				information[j] = pIntArray.getNthIntInArray(j);
-				// ASSERT: the jth index of information is equal to the jth integer in 
-				//         pIntArray.
-			}
-		}
+		error.handle();
 	}
 }
 
@@ -185,66 +199,59 @@ int createChildProcesses(int neededChildrenNum, int &childNum)
 //      that represents the number of chunks needing to be sorted. numProcesses is a defined integer that represents the number of processes
 //      the overall program is utilizing. jobKey is a defined key that is used in accessing the memory that stores the job information for the
 //      processes. infoKey is a defined key that is used in accessing the numbers that need to be handled by the different jobs.
-// POST: the information at shared memory accessed with key "infoKey" is in sorted order. all ChunkJobs stored at shared memory accessed with 
+// POST: the information at shared memory accessed with key "infoKey" is in sorted order. all ChunkJobs stored at shared memory accessed with
 //       key "jobKey" have a job status that denotes completion.
-void handleJobs(int childNum, int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int &jobBoardSpaceRequired, int &infoSpaceRequired)
+void beginWork(int childNum, int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int &jobBoardSpaceRequired, int &infoSpaceRequired)
 {
 	int jobBoardSHMid; // the identifier for the job board shared memory.
 	// ASSERT: jobBoardSHMid is undefined.
 	int infoSHMid; // the indentifier for the information shared memory.
 	// ASSERT: infoSHMid is undefined.
-	ChunkJob *jobSHM; // the pointer to the job board shared memory.
+	ChunkJob *jobBoard; // the pointer to the job board shared memory.
 	// ASSERT: jobSHM points to nothing.
 	int *infoSHM; // the pointer to the information shared memory.
 	// ASSERT: infoSHM points to nothing.
 
 	try
 	{
+		accessSharedMemory(jobKey, jobBoardSpaceRequired, jobBoardSHMid);
+		attachToSharedMemory<ChunkJob>(jobBoard, jobBoardSHMid);
+		accessSharedMemory(infoKey, infoSpaceRequired, infoSHMid);
+		attachToSharedMemory<int>(infoSHM, infoSHMid);
 		
-	}
-	catch(Exception err)
-	{
-		err.handle();
-	}
-	
-
-
-	if ((jobBoardSHMid = shmget(jobKey, jobBoardSpaceRequired, 0666)) < 0)
-	// ASSERT: jobBoardSHMid is less than 0.
-	{
-		perror("shmget");
-	}
-	else
-	{
-		jobSHM = (ChunkJob *)shmat(jobBoardSHMid, NULL, 0);
-		// ASSERT: jobSHM is -1 if there was an error attatching to the shared
-		//         memory identified by jobBoardSHMid. Otherwise, jobSHM points
-		//         to the shared memory identified by jobBoardSHMid.
-		if (jobSHM == (ChunkJob *)-1)
-		// ASSERT: jobSHM is a NULL pointer. 
+		for (int i = 0; i < numChunks; i++)
+		// ASSERT: 
 		{
-			perror("shmat");
-		}
-		else
-		{
-			if ((infoSHMid = shmget(infoKey, infoSpaceRequired, 0666)) < 0)
-			// ASSERT: infoSHMid
+			int jobStatus = jobBoard[i].getJobStatus(); //
+			// ASSERT: 
+			if (jobStatus == UNSORTED) 
+			// ASSERT: Job is to mergesort an unsorted chunk.
 			{
-				perror("shmget");
+				jobBoard[i].setJobStatus(BUSY);
+				// ASSERT: job i is set to busy while being worked on.
+				int startingLocation = (jobBoard[i].getChunk1() * CHUNKSIZE); //
+				// ASSERT: 
+				IntArray temp; //
+				// ASSERT: 
+				for(int j = startingLocation; j < (startingLocation + CHUNKSIZE); j++)
+				// ASSERT: 
+				{
+					temp.addInt(infoSHM[j]);
+				}
+				mergeSort(temp, 0, temp.getContentLength());
+				jobBoard[i].setJobStatus(SORTED);
+				// ASSERT: job i is sorted, and its status reflects this.
 			}
-			else
+			else if (jobStatus == SORTED)
+			// ASSERT: Job is to merge two sorted chunks.
 			{
-				if ((infoSHM = (int *)shmat(infoSHMid, NULL, 0)) == (int *)-1)
-				// ASSERT:
-				{
-					perror("shmat");
-				}
-				else
-				{
 
-				}
 			}
 		}
+	}
+	catch (Exception error)
+	{
+		error.handle();
 	}
 }
 
@@ -279,7 +286,7 @@ int main(int argc, char **argv)
 		inputData(inputFile, informationKey, informationSpaceRequired, numChunks);
 		createJobBoard(jobKey, numChunks, jobBoardSpaceRequired);
 		createChildProcesses(numChildren, childNum);
-		handleJobs(childNum, numChunks, (numChildren + 1), jobKey, informationKey, jobBoardSpaceRequired, informationSpaceRequired);
+		beginWork(childNum, numChunks, (numChildren + 1), jobKey, informationKey, jobBoardSpaceRequired, informationSpaceRequired);
 	}
 	return (0);
 }
