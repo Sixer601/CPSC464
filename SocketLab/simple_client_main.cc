@@ -8,7 +8,7 @@ int main ( int argc, char * argv[] )
   try
     {
 
-      ClientSocket client_socket ( "cpsc.roanoke.edu", 30000 );
+      ClientSocket client_socket ( "10.200.104.24", 30004 );
 
       std::string reply;
 
