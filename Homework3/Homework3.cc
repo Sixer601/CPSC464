@@ -110,7 +110,7 @@ void createSharedMemory(IntArray pIntArray, key_t infoKey, int &informationSpace
 	try
 	{
 		createSharedMemory(infoKey, informationSpaceRequired, shared_mem_id);
-		attachToSharedMemory<int>(shm, shared_mem_id);
+		attachToSharedMemory(shm, shared_mem_id);
 		information = shm;
 		// ASSERT: information points to the same location in memory as shm.
 		for (int i = 0; i < pIntArray.getContentLength(); i++)
@@ -206,7 +206,7 @@ void beginWork(int childNum, int numChunks, int numProcesses, key_t jobKey, key_
 	// ASSERT: jobBoardSHMid is undefined.
 	int infoSHMid; // the indentifier for the information shared memory.
 	// ASSERT: infoSHMid is undefined.
-	ChunkJob *jobBoard; // the pointer to the job board shared memory.
+	int *jobBoard; // the pointer to the job board shared memory.
 	// ASSERT: jobSHM points to nothing.
 	int *infoSHM; // the pointer to the information shared memory.
 	// ASSERT: infoSHM points to nothing.
@@ -214,9 +214,9 @@ void beginWork(int childNum, int numChunks, int numProcesses, key_t jobKey, key_
 	try
 	{
 		accessSharedMemory(jobKey, jobBoardSpaceRequired, jobBoardSHMid);
-		attachToSharedMemory<ChunkJob>(jobBoard, jobBoardSHMid);
+		attachToSharedMemory(jobBoard, jobBoardSHMid);
 		accessSharedMemory(infoKey, infoSpaceRequired, infoSHMid);
-		attachToSharedMemory<int>(infoSHM, infoSHMid);
+		attachToSharedMemory(infoSHM, infoSHMid);
 		
 		for (int i = 0; i < numChunks; i++)
 		// ASSERT: 
