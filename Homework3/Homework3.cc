@@ -244,7 +244,7 @@ void beginWork(int childNum, int numChunks, int numProcesses, key_t jobKey, key_
 			else if (jobStatus == SORTED)
 			// ASSERT: Job is to merge two sorted chunks.
 			{
-
+				
 			}
 		}
 	}
