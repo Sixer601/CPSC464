@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "IntArray.h"
-#include "ChunkJob.h"
 #include "HelperFunctions.h"
 #include "Exception.h"
 #include "Constants.h"
@@ -37,11 +36,10 @@ void accessSharedMemory(key_t pKey, int pSpaceRequired, int &memoryID)
 
 // PRE:
 // POST:
-template <typename T>
-void attachToSharedMemory(T *shm, int &memoryID)
+void attachToSharedMemory(int *shm, int &memoryID)
 {
-	shm = (T *)shmat(memoryID, NULL, 0);
-	if (shm == (T *)-1)
+	shm = (int *)shmat(memoryID, NULL, 0);
+	if (shm == (int *)-1)
 	{
 		throw(Exception((char *)"Problem attaching to shared memory segment."));
 	}
@@ -60,24 +58,25 @@ void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
 	int jobBoard_mem_id; // identifier that aids in creating a space in shared
 					 // memory creation.
 	// ASSERT: jobBoard_mem_id is undefined.
-	ChunkJob *shm; // pointer to shared memory for once it is created.
+	int *shm; // pointer to shared memory for once it is created.
 	// ASSERT: shm is undefined.
-	ChunkJob *jobs; // pointer to reference items in shared memory.
+	int *jobs; // pointer to reference items in shared memory.
 	// ASSERT: jobs is undefined.
-	jobBoardSpaceRequired = (sizeof(ChunkJob) * numChunks);
+	jobBoardSpaceRequired = (sizeof(int) * numChunks) * 3;
 	// ASSERT: jobBoardSpaceRequired is the size of a character for each job.
 
 	try
 	{
 		createSharedMemory(jobKey, jobBoardSpaceRequired, jobBoard_mem_id);
-		attachToSharedMemory<ChunkJob>(shm, jobBoard_mem_id);
+		attachToSharedMemory(shm, jobBoard_mem_id);
 		jobs = shm;
 		// ASSERT: jobs points to the same location in memory that shm does.
 		for (int i = 0; i < numChunks; i++)
 		// ASSERT: i is less than the number of chunks in the information.
 		{
-			ChunkJob temp(i, i, UNSORTED);
-			jobs[i] = temp;
+			int fromChunkSpot = (3 * i) - 3;
+			int toChunkSpot = (3 * i) - 2;
+			int jobStatus = (3 * i) - 1;
 		}
 	}
 	catch (Exception error)

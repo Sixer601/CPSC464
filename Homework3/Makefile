@@ -9,6 +9,3 @@ HelperFunctions.o:	HelperFunctions.h HelperFunctions.cc
 
 IntArray.o:	IntArray.h IntArray.cc
 	g++ -c IntArray.cc
-
-ChunkJob.o:	ChunkJob.h ChunkJob.cc
-	g++ -c ChunkJob.cc
