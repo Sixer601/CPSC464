@@ -158,12 +158,13 @@ void inputData(istream &pInputFile, key_t infoKey, int &spaceRequired, int &numC
 // POST: There are x+1 processes running the code following this function, where x is equal
 //       to neededChildrenNum. Each of these processes contains a unique number, starting at
 //       0, to denote which child they are relative to each other.
-int createChildProcesses(int neededChildrenNum, int &childNum)
+void createChildProcesses(int neededChildrenNum)
 {
+	int numChildren = 0;
 	bool child = false; // identifier for if the process is a child process.
 	// ASSERT: child begins as false, as the only process running this code is the parent
 	//         process.
-	while (childNum < neededChildrenNum && !child)
+	while (numChildren < neededChildrenNum && !child)
 	// ASSERT: the current identifier of the process is less than the number of children
 	//         needed, and the current process does not have the child flag.
 	{
@@ -182,16 +183,77 @@ int createChildProcesses(int neededChildrenNum, int &childNum)
 			child = true;
 			// ASSERT: the child flag is set to true.
 		}
-		childNum++;
+		numChildren++;
 		// ASSERT: childNum is incremented by 1.
 	}
-	if (!child)
-	// ASSERT: the current process is the parent process.
+}
+
+// PRE:
+// POST:
+void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
+{
+	int numComplete = 0; //
+	// ASSERT: 
+	for (int i = 0; i < numChunks; i++)
+	// ASSERT:
 	{
-		childNum = 0;
-		// ASSERT: childNum is reset to 0.
+		int jobStatusLocation = (JOBSPACE * i) - JOBSTATUS; //
+		// ASSERT:
+		int fromChunkLocation = (JOBSPACE * i) - FROMCHUNK; //
+		// ASSERT:
+		int toChunkLocation = (JOBSPACE * i) - TOCHUNK; //
+		// ASSERT:
+		int jobStatus = jobBoard[jobStatusLocation]; //
+		// ASSERT:
+		if (jobStatus == UNSORTED)
+		// ASSERT: Job is to mergesort an unsorted chunk.
+		{
+			jobBoard[jobStatusLocation] = BUSY;
+			// ASSERT: job i is set to busy while being worked on.
+			int startingLocation = (jobBoard[fromChunkLocation] * CHUNKSIZE); //
+			// ASSERT:
+			int * temp = new int[CHUNKSIZE]; //
+			// ASSERT:
+			for (int j = startingLocation; j < (startingLocation + CHUNKSIZE); j++)
+			// ASSERT:
+			{
+				temp[j] = infoSHM[j];
+			}
+			mergeSort(temp, 0, CHUNKSIZE);
+			jobBoard[jobStatusLocation] = SORTED;
+			// ASSERT: job i is sorted, and its status reflects this.
+		}
+		else if (jobStatus == SORTED)
+		// ASSERT: Job is to merge two sorted chunks.
+		{
+			int adjJobStatusLocation = jobStatusLocation + JOBSTATUS; //
+			// ASSERT: 
+			int adjFromChunkLocation = fromChunkLocation + FROMCHUNK; //
+			// ASSERT: 
+			int adjToChunkLocation = toChunkLocation + TOCHUNK; //
+			// ASSERT: 
+			if(adjJobStatusLocation < ((JOBSPACE * numChunks) - JOBSTATUS) && jobBoard[adjJobStatusLocation] == SORTED) 
+			// ASSERT: 
+			{
+				merge(infoSHM, (i * CHUNKSIZE), ((i + 1) * CHUNKSIZE), (((i + 2) * CHUNKSIZE) - 1));
+				jobBoard[toChunkLocation] = jobBoard[adjToChunkLocation];
+				jobBoard[adjJobStatusLocation] = COMPLETED;
+				if(jobBoard[fromChunkLocation] == 0 && jobBoard[toChunkLocation] == (numChunks - 1)){
+					jobBoard[jobStatusLocation] = COMPLETED;
+				}
+			}
+		}
+		else if (jobStatus == COMPLETED)
+		// ASSERT: 
+		{
+			numComplete++;
+		}
 	}
-	return (childNum);
+	if (numComplete == numChunks)
+	// ASSERT: 
+	{
+		allComplete == true;
+	}
 }
 
 // PRE: childNum is a defined integer that represents which child the current process running this function is. numChunks is a defined integer
@@ -200,7 +262,7 @@ int createChildProcesses(int neededChildrenNum, int &childNum)
 //      processes. infoKey is a defined key that is used in accessing the numbers that need to be handled by the different jobs.
 // POST: the information at shared memory accessed with key "infoKey" is in sorted order. all ChunkJobs stored at shared memory accessed with
 //       key "jobKey" have a job status that denotes completion.
-void beginWork(int childNum, int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int &jobBoardSpaceRequired, int &infoSpaceRequired)
+void beginWork(int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int &jobBoardSpaceRequired, int &infoSpaceRequired)
 {
 	int jobBoardSHMid; // the identifier for the job board shared memory.
 	// ASSERT: jobBoardSHMid is undefined.
@@ -210,42 +272,19 @@ void beginWork(int childNum, int numChunks, int numProcesses, key_t jobKey, key_
 	// ASSERT: jobSHM points to nothing.
 	int *infoSHM; // the pointer to the information shared memory.
 	// ASSERT: infoSHM points to nothing.
-
+	bool allComplete = false; //
+	// ASSERT: allComplete begins as false, as none of the jobs are assumed to be completed.
 	try
 	{
 		accessSharedMemory(jobKey, jobBoardSpaceRequired, jobBoardSHMid);
 		attachToSharedMemory(jobBoard, jobBoardSHMid);
 		accessSharedMemory(infoKey, infoSpaceRequired, infoSHMid);
 		attachToSharedMemory(infoSHM, infoSHMid);
-		
-		for (int i = 0; i < numChunks; i++)
+
+		while(!allComplete)
 		// ASSERT: 
 		{
-			int jobStatus = jobBoard[i].getJobStatus(); //
-			// ASSERT: 
-			if (jobStatus == UNSORTED) 
-			// ASSERT: Job is to mergesort an unsorted chunk.
-			{
-				jobBoard[i].setJobStatus(BUSY);
-				// ASSERT: job i is set to busy while being worked on.
-				int startingLocation = (jobBoard[i].getChunk1() * CHUNKSIZE); //
-				// ASSERT: 
-				IntArray temp; //
-				// ASSERT: 
-				for(int j = startingLocation; j < (startingLocation + CHUNKSIZE); j++)
-				// ASSERT: 
-				{
-					temp.addInt(infoSHM[j]);
-				}
-				mergeSort(temp, 0, temp.getContentLength());
-				jobBoard[i].setJobStatus(SORTED);
-				// ASSERT: job i is sorted, and its status reflects this.
-			}
-			else if (jobStatus == SORTED)
-			// ASSERT: Job is to merge two sorted chunks.
-			{
-				
-			}
+			findAndDoJob(numChunks, jobBoard, infoSHM, allComplete);
 		}
 	}
 	catch (Exception error)
@@ -279,13 +318,11 @@ int main(int argc, char **argv)
 		// ASSERT:
 		int numChunks = 0; //
 		// ASSERT:
-		int childNum = 0; //
-		// ASSERT:
 
 		inputData(inputFile, informationKey, informationSpaceRequired, numChunks);
 		createJobBoard(jobKey, numChunks, jobBoardSpaceRequired);
-		createChildProcesses(numChildren, childNum);
-		beginWork(childNum, numChunks, (numChildren + 1), jobKey, informationKey, jobBoardSpaceRequired, informationSpaceRequired);
+		createChildProcesses(numChildren);
+		beginWork(numChunks, (numChildren + 1), jobKey, informationKey, jobBoardSpaceRequired, informationSpaceRequired);
 	}
 	return (0);
 }

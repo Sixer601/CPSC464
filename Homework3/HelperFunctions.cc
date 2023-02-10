@@ -19,26 +19,22 @@ int ceiling(int a, int b)
 	return(result);
 }
 
-void merge(IntArray pIntArray, int p, int q, int r)
+void merge(int * pIntArray, int p, int q, int r)
 {
 	int i = p;
 	int j = q;
 	int k = 0;
-	int * temp = new int[r - p];
-	for (int a = p; a < r; a++)
-	{
-		temp[a] = pIntArray.getNthIntInArray(a);
-	}
+	int * temp = new int [r - p];
 	while (i < q && j < r)
 	{
-		if (pIntArray.getNthIntInArray(i) < pIntArray.getNthIntInArray(j))
+		if (pIntArray[i] < pIntArray[j])
 		{
-			temp[k] = pIntArray.getNthIntInArray(i);
+			temp[k] = pIntArray[i];
 			i++;
 		}
 		else
 		{
-			temp[k] = pIntArray.getNthIntInArray(j);
+			temp[k] = pIntArray[j];
 			j++;
 		}
 		k++;
@@ -47,7 +43,7 @@ void merge(IntArray pIntArray, int p, int q, int r)
 	{
 		while(j < r)
 		{
-			temp[k] = pIntArray.getNthIntInArray(j);
+			temp[k] = pIntArray[j];
 			j++;
 			k++;
 		}
@@ -56,20 +52,20 @@ void merge(IntArray pIntArray, int p, int q, int r)
 	{
 		while(i < q)
 		{
-			temp[k] = pIntArray.getNthIntInArray(i);
+			temp[k] = pIntArray[i];
 			i++;
 			k++;
 		}
 	}
 	for (int b = p; b < r; b++)
 	{
-		pIntArray.replaceInt(b, temp[b]);
+		pIntArray[b] = temp[b];
 	}
 }
 
 // PRE: 
 // POST: 
-void mergeSort(IntArray pIntArray, int p, int r)
+void mergeSort(int * pIntArray, int p, int r)
 {
 	if (p != r)
 	{
