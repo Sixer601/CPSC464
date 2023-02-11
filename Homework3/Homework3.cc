@@ -74,9 +74,9 @@ void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
 		for (int i = 0; i < numChunks; i++)
 		// ASSERT: i is less than the number of chunks in the information.
 		{
-			int fromChunkSpot = (3 * i) - 3;
-			int toChunkSpot = (3 * i) - 2;
-			int jobStatus = (3 * i) - 1;
+			int fromChunkSpot = (JOBSPACE * i) - FROMCHUNK;
+			int toChunkSpot = (JOBSPACE * i) - TOCHUNK;
+			int jobStatus = (JOBSPACE * i) - JOBSTATUS;
 		}
 	}
 	catch (Exception error)
@@ -193,15 +193,15 @@ void createChildProcesses(int neededChildrenNum)
 void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 {
 	int numComplete = 0; //
-	// ASSERT: 
+	// ASSERT:
 	for (int i = 0; i < numChunks; i++)
 	// ASSERT:
 	{
-		int jobStatusLocation = (JOBSPACE * i) - JOBSTATUS; //
-		// ASSERT:
 		int fromChunkLocation = (JOBSPACE * i) - FROMCHUNK; //
 		// ASSERT:
 		int toChunkLocation = (JOBSPACE * i) - TOCHUNK; //
+		// ASSERT:
+		int jobStatusLocation = (JOBSPACE * i) - JOBSTATUS; //
 		// ASSERT:
 		int jobStatus = jobBoard[jobStatusLocation]; //
 		// ASSERT:
@@ -212,7 +212,7 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 			// ASSERT: job i is set to busy while being worked on.
 			int startingLocation = (jobBoard[fromChunkLocation] * CHUNKSIZE); //
 			// ASSERT:
-			int * temp = new int[CHUNKSIZE]; //
+			int *temp = new int[CHUNKSIZE]; //
 			// ASSERT:
 			for (int j = startingLocation; j < (startingLocation + CHUNKSIZE); j++)
 			// ASSERT:
@@ -226,31 +226,32 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 		else if (jobStatus == SORTED)
 		// ASSERT: Job is to merge two sorted chunks.
 		{
-			int adjJobStatusLocation = jobStatusLocation + JOBSTATUS; //
-			// ASSERT: 
-			int adjFromChunkLocation = fromChunkLocation + FROMCHUNK; //
-			// ASSERT: 
-			int adjToChunkLocation = toChunkLocation + TOCHUNK; //
-			// ASSERT: 
-			if(adjJobStatusLocation < ((JOBSPACE * numChunks) - JOBSTATUS) && jobBoard[adjJobStatusLocation] == SORTED) 
-			// ASSERT: 
+			int adjFromChunkLocation = JOBSPACE * jobBoard[toChunkLocation]; //
+			// ASSERT:
+			int adjToChunkLocation = adjFromChunkLocation + 1; //
+			// ASSERT:
+			int adjJobStatusLocation = adjFromChunkLocation + 2; //
+			// ASSERT:
+			if (adjJobStatusLocation < ((JOBSPACE * numChunks) - JOBSTATUS) && jobBoard[adjJobStatusLocation] == SORTED)
+			// ASSERT:
 			{
 				merge(infoSHM, (i * CHUNKSIZE), ((i + 1) * CHUNKSIZE), (((i + 2) * CHUNKSIZE) - 1));
 				jobBoard[toChunkLocation] = jobBoard[adjToChunkLocation];
 				jobBoard[adjJobStatusLocation] = COMPLETED;
-				if(jobBoard[fromChunkLocation] == 0 && jobBoard[toChunkLocation] == (numChunks - 1)){
+				if (jobBoard[fromChunkLocation] == 0 && jobBoard[toChunkLocation] == (numChunks - 1))
+				{
 					jobBoard[jobStatusLocation] = COMPLETED;
 				}
 			}
 		}
 		else if (jobStatus == COMPLETED)
-		// ASSERT: 
+		// ASSERT:
 		{
 			numComplete++;
 		}
 	}
 	if (numComplete == numChunks)
-	// ASSERT: 
+	// ASSERT:
 	{
 		allComplete == true;
 	}
@@ -281,8 +282,8 @@ void beginWork(int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int
 		accessSharedMemory(infoKey, infoSpaceRequired, infoSHMid);
 		attachToSharedMemory(infoSHM, infoSHMid);
 
-		while(!allComplete)
-		// ASSERT: 
+		while (!allComplete)
+		// ASSERT:
 		{
 			findAndDoJob(numChunks, jobBoard, infoSHM, allComplete);
 		}
