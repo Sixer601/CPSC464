@@ -45,6 +45,7 @@ void attachToSharedMemory(int *shm, int &memoryID)
 	{
 		throw(Exception((char *)"Problem attaching to shared memory segment."));
 	}
+	cout << hex << (void *)shm << dec << endl;
 }
 
 // PRE: jobKey is a defined key that represents the identifier for the shared
@@ -66,7 +67,6 @@ void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
 	// ASSERT: jobs is undefined.
 	jobBoardSpaceRequired = (sizeof(int) * numChunks) * 3;
 	// ASSERT: jobBoardSpaceRequired is the size of a character for each job.
-
 	try
 	{
 		createSharedMemory(jobKey, jobBoardSpaceRequired, jobBoard_mem_id);
@@ -94,7 +94,7 @@ void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
 //      number of chunks the information stored in pIntArray can be broken into.
 // POST: There is a location in shared memory that is sized at the number of
 //       bytes equal to informationSpaceRequired. This memory's key is equal to infoKey.
-void createSharedMemory(IntArray pIntArray, key_t infoKey, int &informationSpaceRequired, int &numChunks)
+void createInformationSharedMemory(IntArray pIntArray, key_t &infoKey, int &informationSpaceRequired, int &numChunks)
 {
 	int shared_mem_id; // identifier that aids in shared memory creation.
 	// ASSERT: shared_mem_id is undefined.
@@ -118,12 +118,13 @@ void createSharedMemory(IntArray pIntArray, key_t infoKey, int &informationSpace
 		error.handle();
 	}
 	information = shm;
+	cout << hex << (void *)shm << dec << endl;
 	// ASSERT: information points to the same location in memory as shm.
 	for (int i = 0; i < pIntArray.getContentLength(); i++)
 	// ASSERT: j is less than the number of items in pIntArray.
 	{
-		cout << "Copied the " << i << "th number: " << pIntArray.getNthIntInArray(i) << " to information." << endl;
-		//information[i] = pIntArray.getNthIntInArray(i);
+		cout << "Copied the " << i << "th number: " << pIntArray.getNthIntInArray(i) << " to information, which was previously: " << information[i] << endl;
+		information[i] = pIntArray.getNthIntInArray(i);
 		// ASSERT: the jth index of information is equal to the jth integer in
 		//         pIntArray.
 	}
@@ -151,8 +152,7 @@ void inputData(istream &pInputFile, key_t infoKey, int &spaceRequired, int &numC
 		pInputFile >> datum;
 		data.addInt(datum);
 	}
-	cout << "Finished input data. Moving to createSharedMemory." << endl;
-	createSharedMemory(data, infoKey, spaceRequired, numChunks);
+	createInformationSharedMemory(data, infoKey, spaceRequired, numChunks);
 }
 
 // PRE: neededChildrenNum is a defined integer that represents the number of child processes
@@ -256,7 +256,7 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 	if (numComplete == numChunks)
 	// ASSERT:
 	{
-		allComplete == true;
+		allComplete = true;
 	}
 }
 
