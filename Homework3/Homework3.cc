@@ -17,7 +17,8 @@ using namespace std;
 void createSharedMemory(key_t pKey, int pSpaceRequired, int &memoryID)
 {
 	memoryID = shmget(pKey, pSpaceRequired, IPC_CREAT | 0666);
-	if (memoryID < -1)
+	if (memoryID < 0)
+	// ASSERT: 
 	{
 		throw(Exception((char *)"Problem allocating shared memory segment."));
 	}
@@ -29,6 +30,7 @@ void accessSharedMemory(key_t pKey, int pSpaceRequired, int &memoryID)
 {
 	memoryID = shmget(pKey, pSpaceRequired, 0666);
 	if (memoryID == -1)
+	// ASSERT: 
 	{
 		throw(Exception((char *)"Problem accessing shared memory segment."));
 	}
@@ -106,24 +108,24 @@ void createSharedMemory(IntArray pIntArray, key_t infoKey, int &informationSpace
 	informationSpaceRequired = ((sizeof(int) * (pIntArray.getContentLength())));
 	// ASSERT: informationSpaceRequired is equal to the size in bytes of an int for each int in
 	//         pIntArray.
-
 	try
 	{
 		createSharedMemory(infoKey, informationSpaceRequired, shared_mem_id);
 		attachToSharedMemory(shm, shared_mem_id);
-		information = shm;
-		// ASSERT: information points to the same location in memory as shm.
-		for (int i = 0; i < pIntArray.getContentLength(); i++)
-		// ASSERT: j is less than the number of items in pIntArray.
-		{
-			information[i] = pIntArray.getNthIntInArray(i);
-			// ASSERT: the jth index of information is equal to the jth integer in
-			//         pIntArray.
-		}
 	}
 	catch (Exception error)
 	{
 		error.handle();
+	}
+	information = shm;
+	// ASSERT: information points to the same location in memory as shm.
+	for (int i = 0; i < pIntArray.getContentLength(); i++)
+	// ASSERT: j is less than the number of items in pIntArray.
+	{
+		cout << "Copied the " << i << "th number: " << pIntArray.getNthIntInArray(i) << " to information." << endl;
+		//information[i] = pIntArray.getNthIntInArray(i);
+		// ASSERT: the jth index of information is equal to the jth integer in
+		//         pIntArray.
 	}
 }
 
@@ -149,6 +151,7 @@ void inputData(istream &pInputFile, key_t infoKey, int &spaceRequired, int &numC
 		pInputFile >> datum;
 		data.addInt(datum);
 	}
+	cout << "Finished input data. Moving to createSharedMemory." << endl;
 	createSharedMemory(data, infoKey, spaceRequired, numChunks);
 }
 
@@ -305,9 +308,9 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		int numChildren = stoi(argv[2]); //
-		// ASSERT:
 		ifstream inputFile(argv[1]); //
+		// ASSERT:
+		int numChildren = stoi(argv[2]); //
 		// ASSERT:
 		key_t informationKey = 914615; //
 		// ASSERT:
@@ -319,11 +322,15 @@ int main(int argc, char **argv)
 		// ASSERT:
 		int numChunks = 0; //
 		// ASSERT:
-
+		cout << "Entering input data." << endl;
 		inputData(inputFile, informationKey, informationSpaceRequired, numChunks);
+		cout << "Successfully input data." << endl;
 		createJobBoard(jobKey, numChunks, jobBoardSpaceRequired);
+		cout << "Successfully created job board" << endl;
 		createChildProcesses(numChildren);
+		cout << "Successfully created child processes" << endl;
 		beginWork(numChunks, (numChildren + 1), jobKey, informationKey, jobBoardSpaceRequired, informationSpaceRequired);
+		cout << "Finished work" << endl;
 	}
 	return (0);
 }

@@ -12,4 +12,4 @@
 #define TOCHUNK 2
 #define JOBSTATUS 1
 
-#endif;
+#endif

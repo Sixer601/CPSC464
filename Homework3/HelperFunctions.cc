@@ -67,6 +67,7 @@ void merge(int * pIntArray, int p, int q, int r)
 // POST: 
 void mergeSort(int * pIntArray, int p, int r)
 {
+	cout << "Called merge sort." << endl;
 	if (p != r)
 	{
 		int q = ((p + r) / 2);
