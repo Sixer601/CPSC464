@@ -122,7 +122,7 @@ void createSharedMemory(IntArray pIntArray, key_t infoKey, int &informationSpace
 	for (int i = 0; i < pIntArray.getContentLength(); i++)
 	// ASSERT: j is less than the number of items in pIntArray.
 	{
-		cout << "Copied the " << i << "th number: " << pIntArray.getNthIntInArray(i) << " to information." << endl;
+		cout << "Copied the " << i << "th number: " << pIntArray.getNthIntInArray(i) << " to information, which was previously: " << information[i] << endl;
 		//information[i] = pIntArray.getNthIntInArray(i);
 		// ASSERT: the jth index of information is equal to the jth integer in
 		//         pIntArray.
@@ -256,7 +256,7 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 	if (numComplete == numChunks)
 	// ASSERT:
 	{
-		allComplete == true;
+		allComplete = true;
 	}
 }
 
