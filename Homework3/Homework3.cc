@@ -40,7 +40,7 @@ void accessSharedMemory(key_t pKey, int pSpaceRequired, int &memoryID)
 // POST:
 int *attachToSharedMemory(int &memoryID)
 {
-	int * shm = (int *)shmat(memoryID, NULL, 0);
+	int *shm = (int *)shmat(memoryID, NULL, 0);
 	if (shm == (int *)-1)
 	{
 		throw(Exception((char *)"Problem attaching to shared memory segment."));
@@ -198,7 +198,7 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 {
 	int numComplete = 0; //
 	// ASSERT:
-	for (int i = 0; i < numChunks; i++)
+	for (int i = 1; i <= numChunks; i++)
 	// ASSERT:
 	{
 		int fromChunkLocation = (JOBSPACE * i) - FROMCHUNK; //
@@ -209,7 +209,6 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 		// ASSERT:
 		int jobStatus = jobBoard[jobStatusLocation]; //
 		// ASSERT:
-		cout << "Process " << getpid() << " is looking at a job with a jobStatus: " << jobStatus << endl;
 		if (jobStatus == UNSORTED)
 		// ASSERT: Job is to mergesort an unsorted chunk.
 		{
@@ -225,7 +224,6 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 				temp[j] = infoSHM[j];
 			}
 			mergeSort(temp, 0, CHUNKSIZE);
-			cout << "completed overall mergesort for chunk." << endl;
 			jobBoard[jobStatusLocation] = SORTED;
 			// ASSERT: job i is sorted, and its status reflects this.
 		}
@@ -244,9 +242,11 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 				merge(infoSHM, (i * CHUNKSIZE), ((i + 1) * CHUNKSIZE), (((i + 2) * CHUNKSIZE) - 1));
 				jobBoard[toChunkLocation] = jobBoard[adjToChunkLocation];
 				jobBoard[adjJobStatusLocation] = COMPLETED;
+				cout << "adjacent Job set to be completed." << endl;
 				if (jobBoard[fromChunkLocation] == 0 && jobBoard[toChunkLocation] == (numChunks - 1))
 				{
 					jobBoard[jobStatusLocation] = COMPLETED;
+					cout << "final job set to be completed." << endl;
 				}
 			}
 		}
@@ -254,14 +254,12 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 		// ASSERT:
 		{
 			numComplete++;
-			cout << "numComplete: " << numComplete << endl;
 		}
 	}
 	if (numComplete == numChunks)
 	// ASSERT:
 	{
 		allComplete == true;
-		cout << "all jobs completed." << endl;
 	}
 }
 
@@ -289,17 +287,16 @@ void beginWork(int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int
 		jobBoard = attachToSharedMemory(jobBoardSHMid);
 		accessSharedMemory(infoKey, infoSpaceRequired, infoSHMid);
 		infoSHM = attachToSharedMemory(infoSHMid);
-
-		while (!allComplete)
-		// ASSERT:
-		{
-			findAndDoJob(numChunks, jobBoard, infoSHM, allComplete);
-			allComplete = true;
-		}
 	}
 	catch (Exception error)
 	{
 		error.handle();
+	}
+	while (!allComplete)
+	// ASSERT:
+	{
+		findAndDoJob(numChunks, jobBoard, infoSHM, allComplete);
+		allComplete = true;
 	}
 }
 
