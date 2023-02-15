@@ -18,7 +18,7 @@ void createSharedMemory(key_t pKey, int pSpaceRequired, int &memoryID)
 {
 	memoryID = shmget(pKey, pSpaceRequired, IPC_CREAT | 0666);
 	if (memoryID < 0)
-	// ASSERT: 
+	// ASSERT:
 	{
 		throw(Exception((char *)"Problem allocating shared memory segment."));
 	}
@@ -30,7 +30,7 @@ void accessSharedMemory(key_t pKey, int pSpaceRequired, int &memoryID)
 {
 	memoryID = shmget(pKey, pSpaceRequired, 0666);
 	if (memoryID == -1)
-	// ASSERT: 
+	// ASSERT:
 	{
 		throw(Exception((char *)"Problem accessing shared memory segment."));
 	}
@@ -38,14 +38,14 @@ void accessSharedMemory(key_t pKey, int pSpaceRequired, int &memoryID)
 
 // PRE:
 // POST:
-void attachToSharedMemory(int *shm, int &memoryID)
+int *attachToSharedMemory(int &memoryID)
 {
-	shm = (int *)shmat(memoryID, NULL, 0);
+	int * shm = (int *)shmat(memoryID, NULL, 0);
 	if (shm == (int *)-1)
 	{
 		throw(Exception((char *)"Problem attaching to shared memory segment."));
 	}
-	cout << hex << (void *)shm << dec << endl;
+	return (shm);
 }
 
 // PRE: jobKey is a defined key that represents the identifier for the shared
@@ -70,20 +70,23 @@ void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
 	try
 	{
 		createSharedMemory(jobKey, jobBoardSpaceRequired, jobBoard_mem_id);
-		attachToSharedMemory(shm, jobBoard_mem_id);
-		jobs = shm;
-		// ASSERT: jobs points to the same location in memory that shm does.
-		for (int i = 0; i < numChunks; i++)
-		// ASSERT: i is less than the number of chunks in the information.
-		{
-			int fromChunkSpot = (JOBSPACE * i) - FROMCHUNK;
-			int toChunkSpot = (JOBSPACE * i) - TOCHUNK;
-			int jobStatus = (JOBSPACE * i) - JOBSTATUS;
-		}
+		shm = attachToSharedMemory(jobBoard_mem_id);
 	}
 	catch (Exception error)
 	{
 		error.handle();
+	}
+	jobs = shm;
+	// ASSERT: jobs points to the same location in memory that shm does.
+	for (int i = 1; i <= numChunks; i++)
+	// ASSERT: i is less than the number of chunks in the information.
+	{
+		int fromChunkLocation = (JOBSPACE * i) - FROMCHUNK;
+		int toChunkLocation = (JOBSPACE * i) - TOCHUNK;
+		int jobStatusLocation = (JOBSPACE * i) - JOBSTATUS;
+		jobs[fromChunkLocation] = i;
+		jobs[toChunkLocation] = i;
+		jobs[jobStatusLocation] = UNSORTED;
 	}
 }
 
@@ -94,7 +97,7 @@ void createJobBoard(key_t jobKey, int &numChunks, int &jobBoardSpaceRequired)
 //      number of chunks the information stored in pIntArray can be broken into.
 // POST: There is a location in shared memory that is sized at the number of
 //       bytes equal to informationSpaceRequired. This memory's key is equal to infoKey.
-void createInformationSharedMemory(IntArray pIntArray, key_t &infoKey, int &informationSpaceRequired, int &numChunks)
+void createInformationSpace(IntArray pIntArray, key_t infoKey, int &informationSpaceRequired, int &numChunks)
 {
 	int shared_mem_id; // identifier that aids in shared memory creation.
 	// ASSERT: shared_mem_id is undefined.
@@ -111,7 +114,7 @@ void createInformationSharedMemory(IntArray pIntArray, key_t &infoKey, int &info
 	try
 	{
 		createSharedMemory(infoKey, informationSpaceRequired, shared_mem_id);
-		attachToSharedMemory(shm, shared_mem_id);
+		shm = attachToSharedMemory(shared_mem_id);
 	}
 	catch (Exception error)
 	{
@@ -123,7 +126,6 @@ void createInformationSharedMemory(IntArray pIntArray, key_t &infoKey, int &info
 	for (int i = 0; i < pIntArray.getContentLength(); i++)
 	// ASSERT: j is less than the number of items in pIntArray.
 	{
-		cout << "Copied the " << i << "th number: " << pIntArray.getNthIntInArray(i) << " to information, which was previously: " << information[i] << endl;
 		information[i] = pIntArray.getNthIntInArray(i);
 		// ASSERT: the jth index of information is equal to the jth integer in
 		//         pIntArray.
@@ -152,7 +154,7 @@ void inputData(istream &pInputFile, key_t infoKey, int &spaceRequired, int &numC
 		pInputFile >> datum;
 		data.addInt(datum);
 	}
-	createInformationSharedMemory(data, infoKey, spaceRequired, numChunks);
+	createInformationSpace(data, infoKey, spaceRequired, numChunks);
 }
 
 // PRE: neededChildrenNum is a defined integer that represents the number of child processes
@@ -208,6 +210,7 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 		// ASSERT:
 		int jobStatus = jobBoard[jobStatusLocation]; //
 		// ASSERT:
+		cout << "Process " << getpid() << " is looking at a job with a jobStatus: " << jobStatus << endl;
 		if (jobStatus == UNSORTED)
 		// ASSERT: Job is to mergesort an unsorted chunk.
 		{
@@ -223,6 +226,7 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 				temp[j] = infoSHM[j];
 			}
 			mergeSort(temp, 0, CHUNKSIZE);
+			cout << "completed overall mergesort for chunk." << endl;
 			jobBoard[jobStatusLocation] = SORTED;
 			// ASSERT: job i is sorted, and its status reflects this.
 		}
@@ -251,12 +255,14 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 		// ASSERT:
 		{
 			numComplete++;
+			cout << "numComplete: " << numComplete << endl;
 		}
 	}
 	if (numComplete == numChunks)
 	// ASSERT:
 	{
-		allComplete = true;
+		allComplete == true;
+		cout << "all jobs completed." << endl;
 	}
 }
 
@@ -281,14 +287,15 @@ void beginWork(int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int
 	try
 	{
 		accessSharedMemory(jobKey, jobBoardSpaceRequired, jobBoardSHMid);
-		attachToSharedMemory(jobBoard, jobBoardSHMid);
+		jobBoard = attachToSharedMemory(jobBoardSHMid);
 		accessSharedMemory(infoKey, infoSpaceRequired, infoSHMid);
-		attachToSharedMemory(infoSHM, infoSHMid);
+		infoSHM = attachToSharedMemory(infoSHMid);
 
 		while (!allComplete)
 		// ASSERT:
 		{
 			findAndDoJob(numChunks, jobBoard, infoSHM, allComplete);
+			allComplete = true;
 		}
 	}
 	catch (Exception error)
@@ -322,15 +329,10 @@ int main(int argc, char **argv)
 		// ASSERT:
 		int numChunks = 0; //
 		// ASSERT:
-		cout << "Entering input data." << endl;
 		inputData(inputFile, informationKey, informationSpaceRequired, numChunks);
-		cout << "Successfully input data." << endl;
 		createJobBoard(jobKey, numChunks, jobBoardSpaceRequired);
-		cout << "Successfully created job board" << endl;
 		createChildProcesses(numChildren);
-		cout << "Successfully created child processes" << endl;
 		beginWork(numChunks, (numChildren + 1), jobKey, informationKey, jobBoardSpaceRequired, informationSpaceRequired);
-		cout << "Finished work" << endl;
 	}
 	return (0);
 }
