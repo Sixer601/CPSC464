@@ -121,6 +121,7 @@ void createInformationSpace(IntArray pIntArray, key_t infoKey, int &informationS
 		error.handle();
 	}
 	information = shm;
+	cout << hex << (void *)shm << dec << endl;
 	// ASSERT: information points to the same location in memory as shm.
 	for (int i = 0; i < pIntArray.getContentLength(); i++)
 	// ASSERT: j is less than the number of items in pIntArray.
