@@ -69,7 +69,6 @@ void merge(int *pIntArray, int p, int q, int r)
 // POST:
 void mergeSort(int *pIntArray, int p, int r)
 {
-	/*
 	if (p < r)
 	{
 		int q = ((p + r) / 2);
@@ -77,5 +76,4 @@ void mergeSort(int *pIntArray, int p, int r)
 		mergeSort(pIntArray, (q + 1), r);
 		merge(pIntArray, p, q, r);
 	}
-	*/
 }
