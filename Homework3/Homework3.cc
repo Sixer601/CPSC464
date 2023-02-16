@@ -121,7 +121,6 @@ void createInformationSpace(IntArray pIntArray, key_t infoKey, int &informationS
 		error.handle();
 	}
 	information = shm;
-	cout << hex << (void *)shm << dec << endl;
 	// ASSERT: information points to the same location in memory as shm.
 	for (int i = 0; i < pIntArray.getContentLength(); i++)
 	// ASSERT: j is less than the number of items in pIntArray.
@@ -240,7 +239,7 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 			if (adjJobStatusLocation < ((JOBSPACE * numChunks) - JOBSTATUS) && jobBoard[adjJobStatusLocation] == SORTED)
 			// ASSERT:
 			{
-				merge(infoSHM, (i * CHUNKSIZE), ((i + 1) * CHUNKSIZE), (((i + 2) * CHUNKSIZE) - 1));
+				//merge(infoSHM, (i * CHUNKSIZE), ((i + 1) * CHUNKSIZE), (((i + 2) * CHUNKSIZE) - 1));
 				jobBoard[toChunkLocation] = jobBoard[adjToChunkLocation];
 				jobBoard[adjJobStatusLocation] = COMPLETED;
 				cout << "adjacent Job set to be completed." << endl;
@@ -297,10 +296,7 @@ void beginWork(int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int
 	// ASSERT:
 	{
 		findAndDoJob(numChunks, jobBoard, infoSHM, allComplete);
-		allComplete = true;
 	}
-	//shmctl(jobBoardSHMid, IPC_RMID, NULL);
-	//shmctl(infoSHMid, IPC_RMID, NULL);
 }
 
 // PRE: argc contains the number of arguments passed to the program. argv are the arguments passed to the program.
@@ -329,9 +325,13 @@ int main(int argc, char **argv)
 		int numChunks = 0; //
 		// ASSERT:
 		inputData(inputFile, informationKey, informationSpaceRequired, numChunks);
+		cout << "Finished inputData." << endl;
 		createJobBoard(jobKey, numChunks, jobBoardSpaceRequired);
+		cout << "Finished createJobBoard." << endl;
 		createChildProcesses(numChildren);
+		cout << "Finished createChildProcesses." << endl;
 		beginWork(numChunks, (numChildren + 1), jobKey, informationKey, jobBoardSpaceRequired, informationSpaceRequired);
+		cout << "Finished beginWork." << endl;
 	}
 	return (0);
 }
