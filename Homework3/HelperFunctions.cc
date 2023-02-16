@@ -21,12 +21,11 @@ int ceiling(int a, int b)
 
 void merge(int *pIntArray, int p, int q, int r)
 {
-	/*
 	int i = p;
-	int j = q;
+	int j = q + 1;
 	int k = 0;
 	int * temp = new int [r - p];
-	while (i < q && j < r)
+	while (i <= q && j < r)
 	{
 		if (pIntArray[i] < pIntArray[j])
 		{
@@ -62,7 +61,6 @@ void merge(int *pIntArray, int p, int q, int r)
 	{
 		pIntArray[b] = temp[b];
 	}
-	*/
 }
 
 // PRE:
