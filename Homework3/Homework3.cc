@@ -225,13 +225,16 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 			{
 				temp[j] = infoSHM[j];
 			}
+			cout << "called Mergesort." << endl;
 			mergeSort(temp, startingLocation, CHUNKSIZE + startingLocation);
+			cout << "finished mergesort." << endl;
 			jobBoard[jobStatusLocation] = SORTED;
 			// ASSERT: job i is sorted, and its status reflects this.
 		}
 		else if (jobStatus == SORTED)
 		// ASSERT: Job is to merge two sorted chunks.
 		{
+			jobBoard[jobStatusLocation] = BUSY;
 			int adjFromChunkLocation = JOBSPACE * jobBoard[toChunkLocation]; //
 			// ASSERT:
 			int adjToChunkLocation = adjFromChunkLocation + 1; //
@@ -315,9 +318,9 @@ int main(int argc, char **argv)
 		// ASSERT:
 		int numChildren = stoi(argv[2]); //
 		// ASSERT:
-		key_t informationKey = 9146151; //
+		key_t informationKey = 9146150; //
 		// ASSERT:
-		key_t jobKey = 101521; //
+		key_t jobKey = 101520; //
 		// ASSERT:
 		int informationSpaceRequired = 0; //
 		// ASSERT:
