@@ -22,7 +22,7 @@ int ceiling(int a, int b)
 void merge(int *pIntArray, int p, int q, int r)
 {
 	/*
-		int i = p;
+	int i = p;
 	int j = q;
 	int k = 0;
 	int * temp = new int [r - p];

@@ -223,7 +223,9 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 			{
 				temp[j] = infoSHM[j];
 			}
+			cout << "about to run merge sort." << endl;
 			mergeSort(temp, 0, CHUNKSIZE);
+			cout << "ran merge sort." << endl;
 			jobBoard[jobStatusLocation] = SORTED;
 			// ASSERT: job i is sorted, and its status reflects this.
 		}
@@ -239,7 +241,9 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 			if (adjJobStatusLocation < ((JOBSPACE * numChunks) - JOBSTATUS) && jobBoard[adjJobStatusLocation] == SORTED)
 			// ASSERT:
 			{
+				cout << "about to merge." << endl;
 				merge(infoSHM, (i * CHUNKSIZE), ((i + 1) * CHUNKSIZE), (((i + 2) * CHUNKSIZE) - 1));
+				cout << "Finished merging" << endl;
 				jobBoard[toChunkLocation] = jobBoard[adjToChunkLocation];
 				jobBoard[adjJobStatusLocation] = COMPLETED;
 				cout << "adjacent Job set to be completed." << endl;
@@ -296,7 +300,7 @@ void beginWork(int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int
 	// ASSERT:
 	{
 		findAndDoJob(numChunks, jobBoard, infoSHM, allComplete);
-		allComplete = true;
+		cout << "allComplete for process: " << getpid() << " is: " << allComplete << endl;
 	}
 }
 
@@ -326,13 +330,10 @@ int main(int argc, char **argv)
 		int numChunks = 0; //
 		// ASSERT:
 		inputData(inputFile, informationKey, informationSpaceRequired, numChunks);
-		cout << "Finished inputData." << endl;
 		createJobBoard(jobKey, numChunks, jobBoardSpaceRequired);
-		cout << "Finished createJobBoard." << endl;
 		createChildProcesses(numChildren);
-		cout << "Finished createChildProcesses." << endl;
+		cout << "process: " << getpid() << " is going to work." << endl;
 		beginWork(numChunks, (numChildren + 1), jobKey, informationKey, jobBoardSpaceRequired, informationSpaceRequired);
-		cout << "Finished beginWork." << endl;
 	}
 	return (0);
 }
