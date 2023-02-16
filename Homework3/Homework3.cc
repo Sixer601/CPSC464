@@ -299,6 +299,8 @@ void beginWork(int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int
 		findAndDoJob(numChunks, jobBoard, infoSHM, allComplete);
 		allComplete = true;
 	}
+	//shmctl(jobBoardSHMid, IPC_RMID, NULL);
+	//shmctl(infoSHMid, IPC_RMID, NULL);
 }
 
 // PRE: argc contains the number of arguments passed to the program. argv are the arguments passed to the program.
