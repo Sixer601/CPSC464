@@ -3,8 +3,8 @@
 
 using namespace std;
 
-// PRE: 
-// POST: 
+// PRE:
+// POST:
 int ceiling(int a, int b)
 {
 	int result;
@@ -16,12 +16,13 @@ int ceiling(int a, int b)
 	{
 		result = a / b;
 	}
-	return(result);
+	return (result);
 }
 
-void merge(int * pIntArray, int p, int q, int r)
+void merge(int *pIntArray, int p, int q, int r)
 {
-	int i = p;
+	/*
+		int i = p;
 	int j = q;
 	int k = 0;
 	int * temp = new int [r - p];
@@ -61,12 +62,14 @@ void merge(int * pIntArray, int p, int q, int r)
 	{
 		pIntArray[b] = temp[b];
 	}
+	*/
 }
 
-// PRE: 
-// POST: 
-void mergeSort(int * pIntArray, int p, int r)
+// PRE:
+// POST:
+void mergeSort(int *pIntArray, int p, int r)
 {
+	/*
 	if (p < r)
 	{
 		int q = ((p + r) / 2);
@@ -74,25 +77,5 @@ void mergeSort(int * pIntArray, int p, int r)
 		mergeSort(pIntArray, (q + 1), r);
 		merge(pIntArray, p, q, r);
 	}
+	*/
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

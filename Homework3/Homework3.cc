@@ -239,7 +239,7 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 			if (adjJobStatusLocation < ((JOBSPACE * numChunks) - JOBSTATUS) && jobBoard[adjJobStatusLocation] == SORTED)
 			// ASSERT:
 			{
-				//merge(infoSHM, (i * CHUNKSIZE), ((i + 1) * CHUNKSIZE), (((i + 2) * CHUNKSIZE) - 1));
+				merge(infoSHM, (i * CHUNKSIZE), ((i + 1) * CHUNKSIZE), (((i + 2) * CHUNKSIZE) - 1));
 				jobBoard[toChunkLocation] = jobBoard[adjToChunkLocation];
 				jobBoard[adjJobStatusLocation] = COMPLETED;
 				cout << "adjacent Job set to be completed." << endl;
@@ -259,7 +259,7 @@ void findAndDoJob(int numChunks, int *jobBoard, int *infoSHM, bool &allComplete)
 	if (numComplete == numChunks)
 	// ASSERT:
 	{
-		allComplete == true;
+		allComplete = true;
 	}
 }
 
@@ -296,6 +296,7 @@ void beginWork(int numChunks, int numProcesses, key_t jobKey, key_t infoKey, int
 	// ASSERT:
 	{
 		findAndDoJob(numChunks, jobBoard, infoSHM, allComplete);
+		allComplete = true;
 	}
 }
 
