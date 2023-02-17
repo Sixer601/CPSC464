@@ -61,9 +61,8 @@ void merge(int *array, int l, int m, int r)
 
 // PRE:
 // POST:
-void mergeSort(int *pIntArray, int p, int r)
+void mergeSort(int *array, int l, int r)
 {
-	int m;
 	if (l < r)
 	{
 		int m = l + (r - l) / 2;
