@@ -58,7 +58,10 @@ void merge(int *array, int l, int m, int r)
 		k++;
 	}
 }
-void mergeSort(int *array, int l, int r)
+
+// PRE:
+// POST:
+void mergeSort(int *pIntArray, int p, int r)
 {
 	int m;
 	if (l < r)
