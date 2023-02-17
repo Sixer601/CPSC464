@@ -1,10 +1,9 @@
 #include "HelperFunctions.h"
 #include "IntArray.h"
+#include <algorithm>
 
 using namespace std;
 
-// PRE: 
-// POST: 
 int ceiling(int a, int b)
 {
 	int result;
@@ -16,83 +15,58 @@ int ceiling(int a, int b)
 	{
 		result = a / b;
 	}
-	return(result);
+	return (result);
 }
 
-void merge(int * pIntArray, int p, int q, int r)
+void merge(int *array, int l, int m, int r)
 {
-	int i = p;
-	int j = q;
-	int k = 0;
-	int * temp = new int [r - p];
-	while (i < q && j < r)
+	int i, j, k, nl, nr;
+	nl = m - l + 1;
+	nr = r - m;
+	int larr[nl], rarr[nr];
+	for (i = 0; i < nl; i++)
+		larr[i] = array[l + i];
+	for (j = 0; j < nr; j++)
+		rarr[j] = array[m + 1 + j];
+	i = 0;
+	j = 0;
+	k = l;
+	while (i < nl && j < nr)
 	{
-		if (pIntArray[i] < pIntArray[j])
+		if (larr[i] <= rarr[j])
 		{
-			temp[k] = pIntArray[i];
+			array[k] = larr[i];
 			i++;
 		}
 		else
 		{
-			temp[k] = pIntArray[j];
+			array[k] = rarr[j];
 			j++;
 		}
 		k++;
 	}
-	if (i == q)
+	while (i < nl)
 	{
-		while(j < r)
-		{
-			temp[k] = pIntArray[j];
-			j++;
-			k++;
-		}
+		array[k] = larr[i];
+		i++;
+		k++;
 	}
-	else if (j == r)
+	while (j < nr)
 	{
-		while(i < q)
-		{
-			temp[k] = pIntArray[i];
-			i++;
-			k++;
-		}
-	}
-	for (int b = p; b < r; b++)
-	{
-		pIntArray[b] = temp[b];
+		array[k] = rarr[j];
+		j++;
+		k++;
 	}
 }
-
-// PRE: 
-// POST: 
-void mergeSort(int * pIntArray, int p, int r)
+void mergeSort(int *array, int l, int r)
 {
-	if (p < r)
+	int m;
+	if (l < r)
 	{
-		int q = ((p + r) / 2);
-		mergeSort(pIntArray, p, q);
-		mergeSort(pIntArray, (q + 1), r);
-		merge(pIntArray, p, q, r);
+		int m = l + (r - l) / 2;
+		// Sort first and second arrays
+		mergeSort(array, l, m);
+		mergeSort(array, m + 1, r);
+		merge(array, l, m, r);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
