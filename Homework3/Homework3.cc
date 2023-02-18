@@ -154,8 +154,10 @@ bool createChildProcesses(int numChildrenNeeded)
 //      the last chunk of data. dataSize is a defined integer that represents the number of 
 //      numbers stored within data.
 // POST: data is sorted.
-void beginWork(int numJobs, int *data, int *jobBoard, int sizeOfLastChunk, int dataSize)
+void beginWork(int numJobs, int dataMemoryID, int jobBoardMemoryID, int sizeOfLastChunk, int dataSize)
 {
+	int * data = attachToSharedMemory(dataMemoryID);
+	int * jobBoard = attachToSharedMemory(jobBoardMemoryID);
 	bool workDone = false; // bool to keep track of if all work needing to be done is finished.
 	// ASSERT: workDone begins as false, as we assume data is not already sorted.
 	int lastJob = (numJobs - 1); // helper variable to keep track of last job.
@@ -292,7 +294,7 @@ int main(int argc, char *argv[])
 		// ASSERT: pointerToJobBoardSharedMemory is equal to the RV of storeIntArrayInSharedMemory.
 		bool isChild = createChildProcesses(numChildren); // bool to track if process is child process.
 		// ASSERT: isChild is equal to RV of createChildProcesses.
-		beginWork(numChunks, pointerToDataSharedMemory, pointerToJobBoardSharedMemory, sizeOfLastChunk, data.getContentLength());
+		beginWork(numChunks, dataMemoryID, jobBoardMemoryID, sizeOfLastChunk, data.getContentLength());
 		printArray((char *)"Sorted List: ", pointerToDataSharedMemory, 0, data.getContentLength() - 1);
 		if ((!isChild))
 		// ASSERT: process is the parent process.
