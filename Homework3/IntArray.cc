@@ -3,15 +3,11 @@
 
 using namespace std;
 
-// PRE:
-// POST:
 void copy(int *pArray, int pArrayLength, int *newArray)
 {
 	for (int i = 0; i < pArrayLength; i++)
 	{
-		// ASSERT:
 		newArray[i] = pArray[i];
-		// ASSERT:
 	}
 }
 
@@ -19,8 +15,6 @@ void copy(int *pArray, int pArrayLength, int *newArray)
 // Constructors
 // ==============================
 
-// PRE:
-// POST:
 IntArray::IntArray()
 {
 	contentLength = 0;
@@ -28,8 +22,6 @@ IntArray::IntArray()
 	theArray = new int[arraySize];
 }
 
-// PRE:
-// POST:
 IntArray::IntArray(const IntArray &pIntArray)
 {
 	contentLength = pIntArray.contentLength;
@@ -42,8 +34,6 @@ IntArray::IntArray(const IntArray &pIntArray)
 // Destructor
 // ==============================
 
-// PRE:
-// POST:
 IntArray::~IntArray()
 {
 	delete[] theArray;
@@ -53,20 +43,14 @@ IntArray::~IntArray()
 // Accessor Functions
 // ==============================
 
-// PRE: 
-// POST: 
 int IntArray::getNthIntInArray(int n) const {
 	return (theArray[n]);
 }
 
-// PRE: 
-// POST: 
 int IntArray::getContentLength() const {
 	return(contentLength);
 }
 
-// PRE: 
-// POST: 
 int * IntArray::getTheArray() const {
 	return(theArray);
 }
@@ -75,14 +59,10 @@ int * IntArray::getTheArray() const {
 // Modifier Functions
 // ==============================
 
-// PRE: 
-// POST: 
 void IntArray::clear() {
 	contentLength = 1;
 }
 
-// PRE: 
-// POST: 
 void IntArray::addInt(int pInt) {
 	if (contentLength == arraySize) {
 		int *tempArray = new int[arraySize * 2];
@@ -101,8 +81,6 @@ void IntArray::addInt(int pInt) {
 	contentLength++;
 }
 
-// PRE: 
-// POST: 
 void IntArray::insertInt(int i, int pInt) {
 	if (contentLength == arraySize) {
 		int *tempArray = new int[arraySize * 2];
@@ -127,28 +105,20 @@ void IntArray::insertInt(int i, int pInt) {
 	contentLength++;
 }
 
-// PRE: 
-// POST: 
 void IntArray::replaceInt(int i, int pInt) {
 	theArray[i] = pInt;
 }
 
-// PRE: 
-// POST: 
 void IntArray::removeLastInt() {
 	contentLength--;
 }
 
-// PRE: 
-// POST: 
 void IntArray::removeFirstInt() {
 	for (int i = 0; i < contentLength; i++) {
 		theArray[i] = theArray[i + 1];
 	}
 }
 
-// PRE: 
-// POST: 
 void IntArray::removeIthInt(int i) {
 	for (int j = i; j < contentLength; j++) {
 		theArray[j] = theArray[j + 1];
@@ -160,8 +130,6 @@ void IntArray::removeIthInt(int i) {
 // Predicate Functions
 // ==============================
 
-// PRE: 
-// POST: 
 bool IntArray::isEmpty() {
 	return(contentLength == 0);
 }
