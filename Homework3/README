@@ -1,0 +1,34 @@
+======== READ ME Documentation ========
+
+====== Purpose ======
+
+To understand how shared memory works when using
+child processes.
+
+====== Files Included ======
+
+Constants.h -
+Exception.h - 
+HelperFunctions.cc -
+HelperFunctions.h -
+Homework3.cc - 
+IntArray.cc - 
+IntArray.h - 
+MakeFile - 
+README - 
+
+====== How to Compile ======
+
+
+====== How to Run ======
+
+
+====== Example Command to Run Program ======
+
+
+====== Example Output based on Example Command ======
+
+
+
+
+====== End of READ ME ======
