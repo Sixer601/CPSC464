@@ -239,6 +239,7 @@ void beginWork(int numJobs, int dataMemoryID, int jobBoardMemoryID, int sizeOfLa
 				//         otherwise the job status is SORTED.
 				jobBoard[adjJobStatusLocation] = COMPLETED;
 				// ASSERT: the adjacent job status is set to COMPLETED.
+				printArray((char *)"Job Board: ", jobBoard, 0, (JOBSPACE * numJobs) - 1);
 			}
 		}
 		if ((jobBoard[1] == lastJob) && (jobBoard[2] == COMPLETED))
@@ -295,10 +296,10 @@ int main(int argc, char *argv[])
 		bool isChild = createChildProcesses(numChildren); // bool to track if process is child process.
 		// ASSERT: isChild is equal to RV of createChildProcesses.
 		beginWork(numChunks, dataMemoryID, jobBoardMemoryID, sizeOfLastChunk, data.getContentLength());
-		printArray((char *)"Sorted List: ", pointerToDataSharedMemory, 0, data.getContentLength() - 1);
 		if ((!isChild))
 		// ASSERT: process is the parent process.
 		{
+        		printArray((char *)"Sorted List: ", pointerToDataSharedMemory, 0, data.getContentLength() - 1);
 			shmctl(dataMemoryID, IPC_RMID, NULL);
 			// ASSERT: deallocates shared memory for data.
 			shmctl(jobBoardMemoryID, IPC_RMID, NULL);
