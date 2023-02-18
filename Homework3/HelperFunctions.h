@@ -4,17 +4,13 @@
 #include <iostream>
 
 using namespace std;
-
-// PRE: 
-// POST: 
+ 
 int ceiling(int a, int b);
+ 
+void printArray(char *message, int *array, int start, int end);
 
-// PRE: 
-// POST: 
-void merge(int * pIntArray, int p, int q, int r);
+void merge(int *array, int p, int q, int r);
 
-// PRE: 
-// POST: 
-void mergeSort(int * pIntArray, int p, int r);
+void mergeSort(int *array, int p, int r);
 
 #endif

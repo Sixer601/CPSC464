@@ -95,7 +95,7 @@ bool createChildProcesses(int numChildrenNeeded)
 	return (child);
 }
 
-void beginWork(int numJobs, int *data, int *jobBoard, int sizeOfLastChunk)
+void beginWork(int numJobs, int *data, int *jobBoard, int sizeOfLastChunk, int dataSize)
 {
 	bool workDone = false;
 	while (!workDone)
@@ -110,7 +110,7 @@ void beginWork(int numJobs, int *data, int *jobBoard, int sizeOfLastChunk)
 			int fromChunk = jobBoard[fromChunkLocation];
 			int toChunk = jobBoard[toChunkLocation];
 			int jobStatus = jobBoard[jobStatusLocation];
-			int adjFromChunkLocation = toChunk * JOBSPACE;
+			int adjFromChunkLocation = (toChunk + 1) * JOBSPACE;
 			int adjToChunkLocation = adjFromChunkLocation + 1;
 			int adjJobStatusLocation = adjFromChunkLocation + 2;
 			int adjFromChunk = jobBoard[adjFromChunkLocation];
@@ -119,39 +119,27 @@ void beginWork(int numJobs, int *data, int *jobBoard, int sizeOfLastChunk)
 			if (jobStatus == UNSORTED)
 			{
 				jobBoard[jobStatusLocation] = BUSY;
-				(fromChunk == lastJob) ? mergeSort(data, (CHUNKSIZE * fromChunk), ((CHUNKSIZE * toChunk) + sizeOfLastChunk - 1)) : mergeSort(data, (CHUNKSIZE * fromChunk), ((CHUNKSIZE * toChunk) + CHUNKSIZE - 1));
-				if (fromChunk != lastJob)
-				{
-					jobBoard[toChunkLocation] = fromChunk + 1;
-				}
+				int start = (CHUNKSIZE * fromChunk);
+				int end;
+				(fromChunk == lastJob) ? end = dataSize - 1 : end = ((CHUNKSIZE * toChunk) + CHUNKSIZE - 1);
+				mergeSort(data, start, end);
+				//printArray((char *)"After merge sort: ", data, start, end);
 				jobBoard[jobStatusLocation] = SORTED;
+				//printArray((char *)"Job Board after merge sort: ", jobBoard, 0, (JOBSPACE * numJobs) - 1);
 			}
-			else if (jobStatus == SORTED)
+			else if ((jobStatus == SORTED) && (adjJobStatus == SORTED))
 			{
 				jobBoard[jobStatusLocation] = BUSY;
-				if ((i != lastJob) && (adjJobStatus == SORTED))
-				{
-					cout << "adjacentChunkInformation: [" << adjFromChunk << ", " << adjToChunk << ", " << adjJobStatus << "]" << endl;
-					merge(data, (CHUNKSIZE * fromChunk), (CHUNKSIZE * adjFromChunk), ((CHUNKSIZE * adjToChunk) - 1));
-					jobBoard[toChunkLocation] = adjToChunk;
-					jobBoard[adjJobStatusLocation] = COMPLETED;
-				}
-				if (fromChunk == 0 && adjToChunk == lastJob)
-				{
-					if(sizeOfLastChunk != CHUNKSIZE)
-					{					
-						merge(data, (CHUNKSIZE * fromChunk), (CHUNKSIZE * lastJob), ((CHUNKSIZE * (lastJob + 1)) - sizeOfLastChunk - 1));
-					}
-					else
-					{
-						merge(data, (CHUNKSIZE * fromChunk), (CHUNKSIZE * lastJob), ((CHUNKSIZE * (lastJob)) - 1));
-					}
-					jobBoard[jobStatusLocation] = COMPLETED;
-				}
-				else
-				{
-					jobBoard[jobStatusLocation] = SORTED;
-				}
+				int start = (CHUNKSIZE * fromChunk);
+				int middle = (CHUNKSIZE * adjFromChunk);
+				int end;
+				(adjToChunk == lastJob) ? end = (dataSize - 1) : end = ((CHUNKSIZE * (adjToChunk + 1)) - 1);
+				merge(data, start, middle, end);
+				//printArray((char *)"After merge sort: ", data, start, end);
+				jobBoard[toChunkLocation] = adjToChunk;
+				((fromChunk == 0) && (jobBoard[toChunkLocation] == lastJob)) ? (jobBoard[jobStatusLocation] = COMPLETED) : (jobBoard[jobStatusLocation] = SORTED);
+				jobBoard[adjJobStatusLocation] = COMPLETED;
+				//printArray((char *)"Job Board after merge: ", jobBoard, 0, (JOBSPACE * numJobs) - 1);
 			}
 			else if (jobStatus == COMPLETED)
 			{
@@ -186,13 +174,8 @@ int main(int argc, char *argv[])
 		key_t jobBoardMemoryKey = 5678;
 		int *pointerToJobBoardSharedMemory = storeIntArrayInSharedMemory(jobBoardMemoryID, jobBoardMemoryKey, jobBoard);
 		bool isChild = createChildProcesses(numChildren);
-		beginWork(numChunks, pointerToDataSharedMemory, pointerToJobBoardSharedMemory, sizeOfLastChunk);
-		cout << "Sorted List: ";
-		for(int i = 0; i < data.getContentLength(); i++)
-		{
-			cout << pointerToDataSharedMemory[i] << " ";
-		}
-		cout << endl;
+		beginWork(numChunks, pointerToDataSharedMemory, pointerToJobBoardSharedMemory, sizeOfLastChunk, data.getContentLength());
+		printArray((char *)"Sorted List: ", pointerToDataSharedMemory, 0, data.getContentLength() - 1);
 		if ((!isChild))
 		{
 			shmctl(dataMemoryID, IPC_RMID, NULL);

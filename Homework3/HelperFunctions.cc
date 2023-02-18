@@ -18,57 +18,73 @@ int ceiling(int a, int b)
 	return (result);
 }
 
-void merge(int *array, int l, int m, int r)
+void printArray(char *message, int *array, int start, int end)
 {
-	int i, j, k, nl, nr;
-	nl = m - l + 1;
-	nr = r - m;
-	int larr[nl], rarr[nr];
-	for (i = 0; i < nl; i++)
-		larr[i] = array[l + i];
-	for (j = 0; j < nr; j++)
-		rarr[j] = array[m + 1 + j];
-	i = 0;
-	j = 0;
-	k = l;
-	while (i < nl && j < nr)
+	cout << message;
+	for(int i = start; i <= end; i++)
 	{
-		if (larr[i] <= rarr[j])
+		cout << array[i] << " ";
+	}
+	cout << endl;
+}
+
+void merge(int *array, int p, int q, int r)
+{
+	int leftArraySize = q - p;
+	int rightArraySize = r - q + 1;
+	int * leftArray = new int[leftArraySize];
+	int * rightArray = new int[rightArraySize];
+	for(int i = 0; i < leftArraySize; i++)
+	{
+		leftArray[i] = array[p + i];	
+	}
+	for(int j = 0; j < rightArraySize; j++)
+	{
+		rightArray[j] = array[q + j];
+	}
+	int a = 0;
+	int b = 0;
+	int c = p;
+	while((a < leftArraySize) && (b < rightArraySize))
+	{
+		if (leftArray[a] <= rightArray[b])
 		{
-			array[k] = larr[i];
-			i++;
+			array[c] = leftArray[a];
+			a++;
 		}
 		else
 		{
-			array[k] = rarr[j];
-			j++;
+			array[c] = rightArray[b];
+			b++; 
 		}
-		k++;
+		c++;
 	}
-	while (i < nl)
+	while(a < leftArraySize)
 	{
-		array[k] = larr[i];
-		i++;
-		k++;
+		array[c] = leftArray[a];
+		a++;
+		c++;
 	}
-	while (j < nr)
+	while(b < rightArraySize)
 	{
-		array[k] = rarr[j];
-		j++;
-		k++;
+		array[c] = rightArray[b];
+		b++;
+		c++;
 	}
+	delete []leftArray;
+	delete []rightArray;
 }
 
 // PRE:
 // POST:
-void mergeSort(int *array, int l, int r)
+void mergeSort(int *array, int p, int r)
 {
-	if (l < r)
+	if (p < r)
 	{
-		int m = l + (r - l) / 2;
+		int q = p + (r - p) / 2;
 		// Sort first and second arrays
-		mergeSort(array, l, m);
-		mergeSort(array, m + 1, r);
-		merge(array, l, m, r);
+		mergeSort(array, p, q);
+		mergeSort(array, q + 1, r);
+		merge(array, p, q + 1, r);
 	}
 }
