@@ -1,0 +1,31 @@
+all: networkDaemon parallelMergeSort
+
+parallelMergeSort:	parallelMergeSort.o ClientSocket.o Socket.o IntArray.o
+	g++ parallelMergeSort.o ClientSocket.o Socket.o IntArray.o -o parallelMergeSort
+
+parallelMergeSort.o:	ClientSocket.h SocketException.h IntArray.h HelperFunctions.h parallelMergeSort.cc
+	g++ -c parallelMergeSort.cc
+
+networkDaemon:	networkDaemon.o ServerSocket.o Socket.o
+	g++ networkDaemon.o ServerSocket.o Socket.o -o networkDaemon
+
+networkDaemon.o:	ServerSocket.h SocketException.h networkDaemon.cc
+	g++ -c networkDaemon.cc
+
+ServerSocket.o:	Socket.h SocketException.h ServerSocket.h ServerSocket.cc
+	g++ -c ServerSocket.cc
+
+ClientSocket.o:	Socket.h SocketException.h ClientSocket.h ClientSocket.cc
+	g++ -c ClientSocket.cc
+
+Socket.o:	Socket.h SocketException.h Socket.cc
+	g++ -c Socket.cc
+
+IntArray.o:	IntArray.h IntArray.cc
+	g++ -c IntArray.cc
+
+HelperFunctions.o:	HelperFunctions.h HelperFunctions.cc
+	g++ -c HelperFunctions.cc
+
+clean:
+	rm -f *.o networkDaemon
