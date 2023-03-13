@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <stdlib.h>
 #include "ServerSocket.h"
@@ -8,6 +9,7 @@ using namespace std;
 
 void runProgram()
 {
+	// TODO: Implement way to handle arguments being passed.
 	char *path = NULL;
 	path = getcwd(path, 0);				   // get the current working directory. Since
 									   // path is NULL, getcwd will allocate
@@ -46,7 +48,11 @@ void runProgram()
 	  // failed, i.e., returned a -1.
 		cout << "exec failed." << endl
 			<< "Path = *" << path
-			<< "* Command = *" << programArgv[0] << "*" << endl;
+			<< "* Command = *" << programArgv[0] 
+			<< " " << programArgv[1] 
+			<< " " << programArgv[2] 
+			<< " " << programArgv[3] 
+			<< " " << "*" << endl;
 	}
 }
 
@@ -59,20 +65,26 @@ void addIPaddressToNodesFile()
 	}
 }
 
-void handleRequest1()
+void handleRequest1(int n)
 {
-	// TODO: Initiate N parallel daemons.
-
-	// TODO: Contact N computers running this network daemon.
-
-	// TODO: Lookup how to contact N computers using nodes.txt
-
-	// TODO: Send request to run a program to each computer contacted.
+	int computersContacted = 0;
+	ifstream ipFile("nodes.txt"); 
+	while(computersContacted < n)
+	{
+		string ipAddress;
+		ipFile >> ipAddress;
+		// TODO: Determine how to compare current ip address with adress retrieved from nodes.txt
+		if(false)
+		{
+			// TODO: Lookup how to contact N computers using nodes.txt
+			// TODO: Send request to run a program to each computer contacted.
+			computersContacted++;
+		}
+	}
 }
 
 void handleRequest2(ServerSocket &server)
 {
-	// TODO: fork a child process to run the requested program.
 	pid_t childPID = fork(); // process id for child process.
 	// ASSERT: childPID is the RV of fork.
 	if (childPID == -1)
@@ -83,9 +95,11 @@ void handleRequest2(ServerSocket &server)
 	else if (childPID == 0)
 	// ASSERT: childPID is equal to 0.
 	{
+		// TODO: Determine how to give a function an undetermined number of parameters. 
+		//       This is due to dynamic number of arguments for different programs.
+		// TODO: Give arguments to ensure the program run is run correctly.
 		runProgram();
 	}
-	// TODO: go back to listening on port D.
 	listenForRequests(server);
 }
 
@@ -97,7 +111,6 @@ void listenForRequests(ServerSocket &server)
 		server.accept(new_sock);
 		try
 		{
-			// TODO: Listen for a request.
 			while (true)
 			{
 				string data;
@@ -105,7 +118,8 @@ void listenForRequests(ServerSocket &server)
 				// TODO: Check what request was made.
 				if (data == "1")
 				{
-					handleRequest1();
+					int n;
+					handleRequest1(n);
 				}
 				else if (data == "2")
 				{
@@ -119,6 +133,7 @@ void listenForRequests(ServerSocket &server)
 		}
 		catch (SocketException &)
 		{
+
 		}
 	}
 }
@@ -127,16 +142,14 @@ int main(int argc, char **argv)
 {
 	if (argc != 1)
 	{
+		cout << "Invalid Number of Arguments." << endl;
 	}
 	else
 	{
 		try
 		{
-			// TODO: Open up a server socket.
 			ServerSocket server(30000);
-			// TODO: Append IP Address to nodes.txt
 			addIPaddressToNodesFile();
-			// TODO: Listen for requests on server socket.
 			listenForRequests(server);
 		}
 		catch (SocketException &e)

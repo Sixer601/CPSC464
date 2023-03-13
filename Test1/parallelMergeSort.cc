@@ -39,14 +39,14 @@ void bossProcess(int numSubProcesses, ifstream &pInputFile)
 	// TODO: Connect to daemon on computer this process is running on.
 	//       Send request to initiate N parallel daemons.
 	
-
-	// TODO: Wait for all employee processes to report back to boss. Once done
-	//       print out a message stating that all files are sorted.
-	bool employeeProcessesDone;
-	while (!employeeProcessesDone)
+	int employeeProcessesDone = 0;
+	// TODO: Determine how to listen for an employee process.
+	while (employeeProcessesDone < numSubProcesses)
 	{
-
+		
 	}
+	cout << "All files have been sorted." << endl;
+	// TODO: Determine how to tell an employee its shift is over.
 }
 
 void employeeProcess(fstream &pFile)
@@ -58,12 +58,16 @@ void employeeProcess(fstream &pFile)
 		pFile << data.getNthIntInArray(i) << " ";
 	}
 	pFile << endl;
-	// TODO: determine when to connect to boss process, then connect to boss process. 
+	// TODO: determine when and how to connect to the boss process. 
 
 	// TODO: Send Message to boss process that employee is done.
 
 	// TODO: Wait for boss process to tell employee to end their shift.
-
+	bool shiftOver = false;
+	while(!shiftOver)
+	{
+		
+	}
 	// TODO: End program.
 }
 
