@@ -1,109 +1,92 @@
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <stdlib.h>
+#include <vector>
+#include <string>
+#include <string.h>
 #include "ServerSocket.h"
+#include "ClientSocket.h"
 #include "SocketException.h"
 
 using namespace std;
 
-void runProgram()
+vector<string> inputIPadresses(ifstream& ipAddressList)
 {
-	// TODO: Implement way to handle arguments being passed.
-	char *path = NULL;
-	path = getcwd(path, 0);				   // get the current working directory. Since
-									   // path is NULL, getcwd will allocate
-									   // memory dynamically for the path
-									   // string. Needs to be deleted.
-									   // The returned path does not end in /
-	char progName[] = "parallelMergeSort";	   // The name of the program to be executed.
-	char program[100];					   // allocate space for the absolute path for
-									   // the program.
-	sprintf(program, "%s/%s", path, progName); // Add the / between the
-									   // directory name and
-									   // program name to make the
-									   // correct absolute path
-	free(path);						   // delete memory allocated for the path
-									   // variable.
-	char arg1[] = "boss";				   // Create a string for each command line
-									   // argument to the program to be
-									   // executed.
-	char arg2[] = "testCase1.txt";
-	char arg3[] = "1";
-	char *nullP = (char *)NULL;			   // The arguments must end in a NULL
-									   // pointer cast as a char *
-	char *programArgv[4];				   // Create an array of pointers to the
-									   // argument strings.
-	programArgv[0] = arg1;				   // Populate the arguments.
-	programArgv[1] = arg2;
-	programArgv[2] = arg3;
-	programArgv[3] = nullP;
-
-	cout << "Calling " << program << " program" << endl;
-
-	int err = execv(program, programArgv); // Execute the program with the
-								    // arguments.
-	if (err == -1)
-	{ // This will be executed ONLY IF the execv
-	  // failed, i.e., returned a -1.
-		cout << "exec failed." << endl
-			<< "Path = *" << path
-			<< "* Command = *" << programArgv[0] 
-			<< " " << programArgv[1] 
-			<< " " << programArgv[2] 
-			<< " " << programArgv[3] 
-			<< " " << "*" << endl;
+	vector<string> data;
+	while (ipAddressList.peek() != EOF)
+	// ASSERT: the next character from the input file is not the end of file character.
+	{
+		string datum; // temporary variable to store single point of data.
+		// ASSERT: datum is undefined.
+		ipAddressList >> datum;
+		data.push_back(datum);
 	}
+	return (data);
 }
 
-void addIPaddressToNodesFile()
+void handleRequest1(string request)
 {
-	int rvSystemCall = system("hostname -I | awk '{print $1}' >> nodes.txt");
-	if (rvSystemCall != 0)
-	{
-		cout << "Errors in putting ip address of computer in nodes.txt" << endl;
-	}
-}
+	ifstream ipAddressList("nodes.txt");
+	vector<string> ipAddressVector = inputIPadresses(ipAddressList);
+	int firstDelimiterPos = request.find(" ");
+	int secondDelimiterPos = request.find(" ", firstDelimiterPos + 1);
 
-void handleRequest1(int n)
-{
-	int computersContacted = 0;
-	ifstream ipFile("nodes.txt"); 
-	while(computersContacted < n)
+	int numProcesses = stoi(request.substr(firstDelimiterPos + 1, secondDelimiterPos));
+	string programToRun = request.substr(secondDelimiterPos + 1);
+
+	vector<string>::iterator it = ipAddressVector.begin();
+	vector<ClientSocket> clientSocketVector; 
+	
+	bool isAllConnected = false;
+
+	for (int i = 0; i < numProcesses; i++)
 	{
-		string ipAddress;
-		ipFile >> ipAddress;
-		// TODO: Determine how to compare current ip address with adress retrieved from nodes.txt
-		if(false)
+		if(!isAllConnected)
 		{
-			// TODO: Lookup how to contact N computers using nodes.txt
-			// TODO: Send request to run a program to each computer contacted.
-			computersContacted++;
+			ClientSocket socket( (*it).c_str(), 30000 );
+			++it;
+			clientSocketVector.push_back(socket);
+			
+			socket << ("2 " + programToRun);
 		}
+		else
+		{
+			clientSocketVector[i % clientSocketVector.size()] << ("2 " + programToRun);
+		}
+
+		if(it == ipAddressVector.end())
+		{
+			it = ipAddressVector.begin();
+			isAllConnected = true;
+		}	
 	}
 }
 
-void handleRequest2(ServerSocket &server)
+void handleRequest2(string request)
 {
+	int firstDelimiterPos = request.find(" ");
+	string programToRun = request.substr(firstDelimiterPos + 1);
 	pid_t childPID = fork(); // process id for child process.
 	// ASSERT: childPID is the RV of fork.
 	if (childPID == -1)
-	// ASSERT: childPID is equal to -1.
+	// ASSERT: There was an error in the forking process.
 	{
 		perror("fork");
 	}
 	else if (childPID == 0)
-	// ASSERT: childPID is equal to 0.
+	// ASSERT: The code run inside this is for the child process.
 	{
-		// TODO: Determine how to give a function an undetermined number of parameters. 
-		//       This is due to dynamic number of arguments for different programs.
-		// TODO: Give arguments to ensure the program run is run correctly.
-		runProgram();
+		// TODO: Ask shende about how to handle path to program.
+		int progFirstDelimiterPos = programToRun.find(" ");
+		string progName = programToRun.substr(0, progFirstDelimiterPos);
+		string progArgs = programToRun.substr(progFirstDelimiterPos + 1);
+		// TODO: Ask shende about how to handle arguments for program.
+		//execv(progName.c_str(), progArgs.c_str());
+		// TODO: Ask shende about how to kill child process "gracefully".
 	}
-	listenForRequests(server);
 }
 
-void listenForRequests(ServerSocket &server)
+void listenForRequests(ServerSocket server)
 {
 	while (true)
 	{
@@ -113,28 +96,37 @@ void listenForRequests(ServerSocket &server)
 		{
 			while (true)
 			{
-				string data;
-				new_sock >> data;
-				// TODO: Check what request was made.
-				if (data == "1")
+				string request;
+				new_sock >> request;
+				if (request[0] == '1')
+				// ASSERT: Request 1 was made.
 				{
-					int n;
-					handleRequest1(n);
+					handleRequest1(request);
 				}
-				else if (data == "2")
+				else if (request[0] == '2')
+				// ASSERT: Request 2 was made.
 				{
-					handleRequest2(server);
+					handleRequest2(request);
 				}
 				else
+				// ASSERT: A faulty request was made.
 				{
-					cout << "Faulty Request." << endl;
+					cout << "Faulty request was made." << endl;
 				}
 			}
 		}
 		catch (SocketException &)
 		{
-
 		}
+	}
+}
+
+void addIPaddressToNodesFile()
+{
+	int rvSystemCall = system("hostname -I | awk '{print $1}' >> nodes.txt");
+	if (rvSystemCall != 0)
+	{
+		cout << "Errors in putting ip address of computer in nodes.txt" << endl;
 	}
 }
 
@@ -150,11 +142,13 @@ int main(int argc, char **argv)
 		{
 			ServerSocket server(30000);
 			addIPaddressToNodesFile();
+			cout << "Listening for requests on port 30000" << endl;
 			listenForRequests(server);
 		}
 		catch (SocketException &e)
 		{
-			cerr << e.description() << endl << "Exiting." << endl;
+			cerr << e.description() << endl
+				<< "Exiting." << endl;
 		}
 	}
 	return (0);

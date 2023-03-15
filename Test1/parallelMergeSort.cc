@@ -68,7 +68,6 @@ void employeeProcess(fstream &pFile)
 	{
 		
 	}
-	// TODO: End program.
 }
 
 int main(int argc, char **argv)
