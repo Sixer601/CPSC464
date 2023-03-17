@@ -37,11 +37,11 @@ void bossProcess(int numSubProcesses, ifstream &pInputFile)
 {
 	// TODO: Split file into C subfiles, where C is the number of subprocesses.
 	freopen("errors.txt", "w", stderr);
-	char inputFileFullName[20];
+	char inputFileFullName[BASESTRINGSIZE];
 	// TODO: Determine what the file being split will be named.
-	sprintf(inputFileFullName, "%s.txt", "");
+	snprintf(inputFileFullName, BASESTRINGSIZE, "%s.txt", "");
 	char splitCommand[BASESTRINGSIZE];
-	sprintf(splitCommand, "split -l -%d %s sort", numSubProcesses, inputFileFullName);
+	snprintf(splitCommand, BASESTRINGSIZE, "split -l -%d %s sort", numSubProcesses, inputFileFullName);
 	int i = system(splitCommand); // i is the return value of the command to split the input file
 							// into their different components. 
 	if (i != 0)
@@ -59,7 +59,7 @@ void bossProcess(int numSubProcesses, ifstream &pInputFile)
 
 	// TODO: Ask Dr. Shende how to tell request 1 to handle the different file names.
 
-	sprintf(request, "1 %d ./parallelMergeSort employee  ", numSubProcesses);
+	snprintf(request, BASESTRINGSIZE, "1 %d ./parallelMergeSort employee  ", numSubProcesses);
 	cSock << request;
 	int employeeProcessesDone = 0; // integer to represent the number of employee processes that have reported to the 
 							 // boss that they have completed the job given to them.
