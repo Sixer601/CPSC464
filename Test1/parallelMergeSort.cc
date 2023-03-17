@@ -1,8 +1,10 @@
+#include <cstring>
 #include <unistd.h>
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
 #include "ClientSocket.h"
+#include "Constants.h"
 #include "HelperFunctions.h"
 #include "IntArray.h"
 
@@ -26,22 +28,45 @@ IntArray inputData(istream &pInputFile)
 	return (data);
 }
 
+// PRE: numSubProcesses is a defined integer denoting the number of jobs to farm out to
+//      other daemons. pInputFile is a defined ifstream that denotes the file to be sorted.
+// POST: pInputFile has been broken into numSubProcesses components
+//       and those components have been sorted. All employees created have terminated after
+//       being told that their shifts are over.
 void bossProcess(int numSubProcesses, ifstream &pInputFile)
 {
 	// TODO: Split file into C subfiles, where C is the number of subprocesses.
 	freopen("errors.txt", "w", stderr);
-	int i;
-	// TODO: Determine how to do string interpolation in C++.
-	i = system("split -l 10 -d tryexec.cc input");
+	char inputFileFullName[20];
+	// TODO: Determine what the file being split will be named.
+	sprintf(inputFileFullName, "%s.txt", "");
+	char splitCommand[BASESTRINGSIZE];
+	sprintf(splitCommand, "split -l -%d %s sort", numSubProcesses, inputFileFullName);
+	int i = system(splitCommand); // i is the return value of the command to split the input file
+							// into their different components. 
 	if (i != 0)
+	// ASSERT: The return value after splitting the input file was an error.
+	{
 		printf("Errors in split.\n");
+	}
 
 	// TODO: Connect to daemon on computer this process is running on.
 	//       Send request to initiate N parallel daemons.
-	
-	int employeeProcessesDone = 0;
+	ClientSocket cSock(LOCALHOSTIPADDRESS, PORTNUMBER); // Client socket to connect to daemon running on this computer.
+	// ASSERT: cSock is a client socket connected to the computer at ip address LOCALHOSTIPADDRESS on port PORTNUMBER.
+	char request[BASESTRINGSIZE]; // request string to send over socket.
+	// ASSERT: request is a character array of size BASESTRINGSIZE.
+
+	// TODO: Ask Dr. Shende how to tell request 1 to handle the different file names.
+
+	sprintf(request, "1 %d ./parallelMergeSort employee  ", numSubProcesses);
+	cSock << request;
+	int employeeProcessesDone = 0; // integer to represent the number of employee processes that have reported to the 
+							 // boss that they have completed the job given to them.
+	// ASSERT: it is assumed that no employee processes are done before we have given them work.
 	// TODO: Determine how to listen for an employee process.
 	while (employeeProcessesDone < numSubProcesses)
+	// ASSERT: there are employee processes still at work.
 	{
 		
 	}
@@ -49,44 +74,64 @@ void bossProcess(int numSubProcesses, ifstream &pInputFile)
 	// TODO: Determine how to tell an employee its shift is over.
 }
 
+// PRE: pFile is a defined fstream object that contains the information to sort using merge sort.
+// POST: pFile contains a sorted list of numbers. This employee was told that its shift is over.
 void employeeProcess(fstream &pFile)
 {
-	IntArray data = inputData(pFile);
+	IntArray data = inputData(pFile); // integer array to contain the numbers stored in pFile
+	// ASSERT: data contains the information stored in pFile.
 	mergeSort(data.getTheArray(), 0, data.getContentLength());
 	for(int i = 0; i < data.getContentLength(); i++)
+	// ASSERT: i begins at 0 and must be less than the content length of the integer array data.
 	{
 		pFile << data.getNthIntInArray(i) << " ";
 	}
 	pFile << endl;
+	// TODO: Write sorted list of numbers to pFile.
+
 	// TODO: determine when and how to connect to the boss process. 
 
 	// TODO: Send Message to boss process that employee is done.
 
 	// TODO: Wait for boss process to tell employee to end their shift.
-	bool shiftOver = false;
+	bool shiftOver = false; // reflects if the employee has gotten confirmation that their shift is over.
+	// ASSERT: shiftOver begins as false due to the fact that no information was given to the employee
+	//         from the boss that the shift is over.
 	while(!shiftOver)
+	// ASSERT: The employee's shift is not over.
 	{
 		
 	}
 }
 
+// PRE: 
+// POST: 
 int main(int argc, char **argv)
 {
 	if (argc < 2 || argc > 4)
+	// ASSERT: The number of arguments are not between 2 and 4.
 	{
 		cout << "Invalid number of arguments." << endl;
 	}
 	else
 	{
-		if (argv[1] == "boss")
+		if (strcmp(argv[1], "boss") == 0)
+		// ASSERT: the first argument passed to this function is
+		//         to denote this merge sort program will be the
+		//         boss of some employee programs.
 		{
-			ifstream inputFile(argv[2]);
-			int numSubProcesses = stoi(argv[3]);
+			ifstream inputFile(argv[2]); // ifstream that contains the file of numbers to sort.
+			int numSubProcesses = stoi(argv[3]); // int that represents the number of processes to farm the work out to.
+			// ASSERT: numSubProcesses is equal to the 3rd argument passed to the program.
 			bossProcess(numSubProcesses, inputFile);
 		}
-		else if (argv[1] == "employee")
+		else if (strcmp(argv[1], "employee") == 0)
+		// ASSERT: the first argument passed to this function is
+		//         to denote this merge sort program will be the
+		//         employee of some boss program.
 		{
-			fstream inputFile(argv[2], ios::in|ofstream::trunc);
+			fstream inputFile(argv[2], ios::in|ofstream::trunc); // fstream that contains the section of the overall document
+													   // that the employee is supposed to sort.
 			employeeProcess(inputFile);
 		}
 	}
