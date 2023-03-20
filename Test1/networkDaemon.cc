@@ -157,8 +157,8 @@ void listenForRequests(ServerSocket server)
 // POST: The ip address the daemon is running on is added to the file IPADDRESSFILE.
 void addIPaddressToNodesFile()
 {
-	char commandToAddIPaddressToNodesFile[100];
-	sprintf(commandToAddIPaddressToNodesFile, "hostname -I | awk '{print $1}' >> %s", IPADDRESSFILE);
+	char commandToAddIPaddressToNodesFile[BASESTRINGSIZE];
+	snprintf(commandToAddIPaddressToNodesFile, BASESTRINGSIZE, "hostname -I | awk '{print $1}' >> %s", IPADDRESSFILE);
 	int rvSystemCall = system(commandToAddIPaddressToNodesFile);
 	// ASSERT: rvSystemCall is the return value of running the command in quotes
 	if (rvSystemCall != 0)
@@ -184,8 +184,8 @@ int main(int argc, char **argv)
 			ServerSocket server(PORTNUMBER); // A server socket to handle requests made to the daemon.
 			// ASSERT: server is a server socket open on port PORT
 			addIPaddressToNodesFile();
-			char listeningMessage[100];
-			sprintf(listeningMessage, "Listening for requests on port %d", PORTNUMBER);
+			char listeningMessage[BASESTRINGSIZE];
+			snprintf(listeningMessage, BASESTRINGSIZE, "Listening for requests on port %d", PORTNUMBER);
 			cout << listeningMessage << endl;
 			listenForRequests(server);
 		}

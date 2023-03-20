@@ -87,10 +87,8 @@ void employeeProcess(fstream &pFile)
 		pFile << data.getNthIntInArray(i) << " ";
 	}
 	pFile << endl;
-	// TODO: Write sorted list of numbers to pFile.
-
 	// TODO: determine when and how to connect to the boss process. 
-
+	
 	// TODO: Send Message to boss process that employee is done.
 
 	// TODO: Wait for boss process to tell employee to end their shift.
