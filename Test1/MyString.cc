@@ -96,7 +96,7 @@ int MyString::FindSubString(const MyString &pSubString) const{
 					return(-1);
 				}
 			}
-			if(SubString = true) {
+			if(SubString == true) {
 			// ASSERT: pSubString is a substring of this object.
 				return(i);
 			}

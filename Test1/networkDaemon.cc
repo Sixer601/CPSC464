@@ -104,6 +104,7 @@ void handleRequest2(string request)
 	// ASSERT: The code run inside this is for the child process.
 	{
 		// TODO: Ask Dr. Shende about how to handle path to program.
+		// NOTE: Use Absolute Path.
 		int progFirstDelimiterPos = programToRun.find(DELIMITER); // Index of first delimiter in the program to run.
 		string progName = programToRun.substr(0, progFirstDelimiterPos); // Name of the program to run.
 		string progArgs = programToRun.substr(progFirstDelimiterPos + 1); // Arguments designed to pass to program to run.
