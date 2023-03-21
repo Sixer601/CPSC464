@@ -71,8 +71,8 @@ void bossProcess(int numSubProcesses, ifstream &pInputFile) {
   //       will tell the other daemon which employee ID to use for running employee
   //       program.
 
-  snprintf(request, BASESTRINGSIZE, "1 %d ./parallelMergeSort employee",
-           numSubProcesses);
+  snprintf(request, BASESTRINGSIZE, "%c %d %s %s",
+           REQUEST1CHARACTER, numSubProcesses, PARALLELMERGESORTPROGPATH, EMPLOYEEARG);
   cSock << request;
   int employeeProcessesDone = 0; // integer to represent the number of employee processes that have
          					   // reported to the boss that they have completed the job given to them.
