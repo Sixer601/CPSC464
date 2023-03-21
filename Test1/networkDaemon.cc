@@ -146,8 +146,7 @@ void handleRequest2(string request, bool &isChild)
 			}
 		}
 
-		// TODO: Ask Dr. Shende how to get char * from string, not const char *, to ensure I can pass proper values to execv.
-		//execv(progName, progArgs);
+		execv(progName, (char * const *)progArgs);
 		isChild = true;
 		// ASSERT:
 	}
