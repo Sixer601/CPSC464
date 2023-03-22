@@ -8,10 +8,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
-#include <sys/_types/_in_port_t.h>
 #include <vector>
 
 using namespace std;
+
+// TODO: Implement Non-Blocking Socket Implementation for Daemon.
 
 // PRE: ipAddressList is a defined ifstream object that represents a file
 // containing
@@ -194,39 +195,44 @@ void listenForRequests(ServerSocket server, bool &isChild)
 // PRE:
 // POST: The ip address the daemon is running on is added to the file
 // IPADDRESSFILE.
-void addIPaddressToNodesFile() {
-  char commandToAddIPaddressToNodesFile[BASESTRINGSIZE];
-  snprintf(commandToAddIPaddressToNodesFile, BASESTRINGSIZE,
-           "hostname -I | awk '{print $1}' >> %s", IPADDRESSFILE);
-  int rvSystemCall = system(commandToAddIPaddressToNodesFile);
-  // ASSERT: rvSystemCall is the return value of running the command in quotes
-  if (rvSystemCall != 0)
-  // ASSERT: The command run had an RV that was not indicative of success.
-  {
-    cout << "Errors in putting ip address of computer in nodes.txt" << endl;
-  }
+void addIPaddressToNodesFile() 
+{
+	char commandToAddIPaddressToNodesFile[BASESTRINGSIZE];
+	snprintf(commandToAddIPaddressToNodesFile, BASESTRINGSIZE, "hostname -I | awk '{print $1}' >> %s", IPADDRESSFILE);
+	int rvSystemCall = system(commandToAddIPaddressToNodesFile);
+	// ASSERT: rvSystemCall is the return value of running the command in quotes
+	if (rvSystemCall != 0)
+	// ASSERT: The command run had an RV that was not indicative of success.
+	{
+		cout << "Errors in putting ip address of computer in nodes.txt" << endl;
+	}
 }
 
 // PRE:
 // POST:
-int main(int argc, char **argv) {
-  if (argc != 1)
-  // ASSERT: The number of arguments passed to the program are not equal to 1.
-  {
-    cout << "Invalid Number of Arguments." << endl;
-  } else {
-    try {
-      ServerSocket server(
-          PORTNUMBER); // A server socket to handle requests made to the daemon.
-      // ASSERT: server is a server socket open on port PORT
-      addIPaddressToNodesFile();
-      cout << "Listening on Port: " << PORTNUMBER << endl;
-      bool isChild = false; //
-      // ASSERT:
-      listenForRequests(server, isChild);
-    } catch (SocketException &e) {
-      cerr << e.description() << endl << "Exiting." << endl;
-    }
-  }
-  return (0);
+int main(int argc, char **argv) 
+{
+	if (argc != 1)
+	// ASSERT: The number of arguments passed to the program are not equal to 1.
+	{
+		cout << "Invalid Number of Arguments." << endl;
+	} 
+	else 
+	{
+		try 
+		{
+			ServerSocket server(PORTNUMBER); // A server socket to handle requests made to the daemon.
+			// ASSERT: server is a server socket open on port PORT
+			addIPaddressToNodesFile();
+			cout << "Listening on Port: " << PORTNUMBER << endl;
+			bool isChild = false; //
+			// ASSERT:
+			listenForRequests(server, isChild);
+		} 
+		catch (SocketException &e) 
+		{
+			cerr << e.description() << endl << "Exiting." << endl;
+		}
+	}
+	return (0);
 }

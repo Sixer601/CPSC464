@@ -68,6 +68,10 @@ void bossProcess(int numSubProcesses, string pFileName, int pPortNum)
 	// NOTE: Use employee ID in order to determine which file to use. local Daemon will tell the other daemon which 
 	//       employee ID to use for running employee program.
 
+	char commandToSnagIPaddressOfBoss[BASESTRINGSIZE];
+
+	snprintf(commandToSnagIPaddressOfBoss, BASESTRINGSIZE, "hostname -I | awk '{print $1}' >> %s", TEMPIPADDRESSFILE);
+
 	snprintf(request, BASESTRINGSIZE, "%c %d %s %s", REQUEST1CHARACTER, numSubProcesses, PARALLELMERGESORTPROGPATH, EMPLOYEEARG);
 	cSock << request;
 
@@ -76,7 +80,7 @@ void bossProcess(int numSubProcesses, string pFileName, int pPortNum)
 
 	bool * employeesStatuses = new bool[numSubProcesses];
 
-	ServerSocket employeeCommunicator(5000);
+	ServerSocket employeeCommunicator(pPortNum);
 	while (!employeesDone)
 	// ASSERT: there are employee processes still at work.
 	{
@@ -128,7 +132,7 @@ void bossProcess(int numSubProcesses, string pFileName, int pPortNum)
 // PRE: pFile is a defined fstream object that contains the information to sort
 // using merge sort. POST: pFile contains a sorted list of numbers. This
 // employee was told that its shift is over.
-void employeeProcess(fstream &pFile, int employeeID, int bossPort) 
+void employeeProcess(fstream &pFile, int employeeID, string bossIpAddress, int bossPort) 
 {
 	IntArray data = inputData(pFile); // integer array to contain the numbers stored in pFile
 	// ASSERT: data contains the information stored in pFile.
@@ -140,27 +144,37 @@ void employeeProcess(fstream &pFile, int employeeID, int bossPort)
 	}
 	pFile << endl;
 	
-	ClientSocket bossCommunicator(LOCALHOSTIPADDRESS, bossPort);
-	
+	ClientSocket bossCommunicator(bossIpAddress, bossPort); //
+	// ASSERT: 
 	char doneMessage[BASESTRINGSIZE];
 	snprintf(doneMessage, BASESTRINGSIZE, "%d finished", 7);
 	bossCommunicator << doneMessage;
 
-
-	// TODO: Send Message to boss process that employee is done.
-
-
-	// TODO: Wait for boss process to tell employee to end their shift.
-
 	bool shiftOver = false; // reflects if the employee has gotten confirmation that their shift is over.
 	// ASSERT: shiftOver begins as false due to the fact that no information was given to the employee
 	//         from the boss that the shift is over.
-	while (!shiftOver)
-	// ASSERT: The employee's shift is not over.
+	string reply; //
+	// ASSERT: 
+	while (!shiftOver) 
+	// ASSERT: 
 	{
-
+		bossCommunicator >> reply;
+		if(reply == "shift over.")
+		// ASSERT: 
+		{
+			shiftOver = true;
+			// ASSERT: 
+		}
 	}
 }
+
+// STRUCTURE TO RUN: 
+//      BOSS PROCESS: ./parallelMergeSort boss test-case1.txt 4 40000
+//                       programName status fileToSplit subprocesses port
+//
+//      EMPLOYEE PROCESS: ./parallelMergeSort employee sort01 1 192.168.1.101 40000 
+//                               programName status fileToSort ID bossIP bossPort
+
 
 // PRE:
 // POST:
@@ -188,12 +202,14 @@ int main(int argc, char **argv)
 		//         to denote this merge sort program will be the
 		//         employee of some boss program.
 		{
-			int employeeID = stoi(argv[3]);
-			int bossPort = stoi(argv[4]);
 			fstream inputFile(argv[2], ios::in | ofstream::trunc); // fstream that contains the section of
 														// the overall document that the employee
 														// is supposed to sort.
-			employeeProcess(inputFile, employeeID, bossPort);
+			int employeeID = stoi(argv[3]);
+			string bossIpAddress = argv[4];
+			int bossPort = stoi(argv[5]);
+			
+			employeeProcess(inputFile, employeeID, bossIpAddress, bossPort);
 		}
 	}
 

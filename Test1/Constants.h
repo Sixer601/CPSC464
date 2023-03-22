@@ -3,6 +3,7 @@
 
 #define PORTNUMBER 30000
 #define IPADDRESSFILE "nodes.txt"
+#define TEMPIPADDRESSFILE "bossIpAddress.txt"
 #define REQUEST1DENOTATION "1 "
 #define REQUEST2DENOTATION "2 "
 #define REQUEST1CHARACTER '1'
@@ -15,5 +16,6 @@
 #define EMPLOYEEARG "employee"
 #define FILEPREFIX "sort"
 #define MAXARGS 3
+#define MAXSOCKS 50
 
 #endif
