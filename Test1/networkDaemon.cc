@@ -1,7 +1,3 @@
-#include "ClientSocket.h"
-#include "Constants.h"
-#include "ServerSocket.h"
-#include "SocketException.h"
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -9,6 +5,13 @@
 #include <string.h>
 #include <string>
 #include <vector>
+
+#include "ConnectionList.h"
+#include "ClientSocket.h"
+#include "Constants.h"
+#include "ServerSocket.h"
+#include "SocketException.h"
+
 
 using namespace std;
 
@@ -157,6 +160,8 @@ void handleRequest2(string request, bool &isChild)
 // POST:
 void listenForRequests(ServerSocket server, bool &isChild) 
 {
+	ServerSocket clients[MAXSOCKS];
+	bool active[MAXSOCKS];
 	while (true && !isChild)
 	// ASSERT: This loop will run until the program is forced to exit.
 	{
@@ -223,6 +228,7 @@ int main(int argc, char **argv)
 		{
 			ServerSocket server(PORTNUMBER); // A server socket to handle requests made to the daemon.
 			// ASSERT: server is a server socket open on port PORT
+			server.set_non_blocking(true);
 			addIPaddressToNodesFile();
 			cout << "Listening on Port: " << PORTNUMBER << endl;
 			bool isChild = false; //

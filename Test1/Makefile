@@ -6,10 +6,10 @@ parallelMergeSort:	parallelMergeSort.o ServerSocket.o ClientSocket.o HelperFunct
 parallelMergeSort.o:	ServerSocket.h ClientSocket.h SocketException.h IntArray.h HelperFunctions.h Constants.h parallelMergeSort.cc
 	g++ -c parallelMergeSort.cc
 
-networkDaemon:	networkDaemon.o ServerSocket.o ClientSocket.o Socket.o
-	g++ networkDaemon.o ServerSocket.o ClientSocket.o Socket.o -o networkDaemon
+networkDaemon:	networkDaemon.o ConnectionList.o ServerSocket.o ClientSocket.o Socket.o
+	g++ networkDaemon.o ConnectionList.o ServerSocket.o ClientSocket.o Socket.o -o networkDaemon
 
-networkDaemon.o:	ServerSocket.h ClientSocket.h SocketException.h networkDaemon.cc
+networkDaemon.o:	ConnectionList.h ServerSocket.h ClientSocket.h SocketException.h networkDaemon.cc
 	g++ -c networkDaemon.cc
 
 ServerSocket.o:	Socket.h SocketException.h ServerSocket.h ServerSocket.cc
@@ -20,6 +20,9 @@ ClientSocket.o:	Socket.h SocketException.h ClientSocket.h ClientSocket.cc
 
 Socket.o:	Socket.h SocketException.h Socket.cc
 	g++ -c Socket.cc
+
+ConnectionList.o:	ConnectionList.h ConnectionList.cc
+	g++ -c ConnectionList.cc
 
 IntArray.o:	IntArray.h IntArray.cc
 	g++ -c IntArray.cc
