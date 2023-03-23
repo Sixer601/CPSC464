@@ -57,9 +57,9 @@ void handleRequest1(string request)
 	string programToRun = request.substr(secondDelimiterPos + 1); // command to have processes run, with arguments.
 	vector<string>::iterator it = ipAddressVector.begin(); // iterator to go through ipAddressVector.
 	// ASSERT: it is a vector of strings iterator that begins at ipAddressVector.
-	vector<ClientSocket> clientSocketVector; // A vector of client sockets that contains all client sockets of connections to the
-									 // other daemons running on the network.
-	// ASSERT: clientSocketVector is a defined vector of client sockets.
+	
+	ConnectionList clients;
+
 	bool isAllConnected = false; // represents if all processes have been connected to or not.
   	// ASSERT: isAllConnected begins at false, as we assume that we have not begun having connected to all the daemons.
 	for (int i = 0; i < numProcesses; i++)
@@ -68,18 +68,16 @@ void handleRequest1(string request)
 		if (!isAllConnected)
 		// ASSERT: All work has not been doled out.
 		{
-			ClientSocket socket((*it).c_str(), PORTNUMBER); // client socket to connect to a daemon to farm out work to.
-			// ASSERT: socket is a client socket connected to the ip address listed at the current position in ipAddressVector, 
-			// and on port PORT.
+			ServerSocket client; // client socket to connect to a daemon to farm out work to.
 			++it;
 			// ASSERT: the iterator for ipAddressVector is incremented.
-			clientSocketVector.push_back(socket);
+			clients.AddConnection(client, true);
 			string idNum = to_string(i);
-			socket << (REQUEST2DENOTATION + programToRun + " " + idNum + " " + FILEPREFIX + idNum);
+			client << (REQUEST2DENOTATION + programToRun + " " + idNum + " " + FILEPREFIX + idNum);
 		} 
 		else 
 		{
-			clientSocketVector[i % clientSocketVector.size()] << (REQUEST2DENOTATION + programToRun);
+			clients.GetIthSocketInConnectionList(i % clients.GetNumConnections()) << (REQUEST2DENOTATION + programToRun);
 		}
 
 		if (it == ipAddressVector.end())

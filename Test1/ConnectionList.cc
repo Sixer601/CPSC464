@@ -79,8 +79,12 @@ int ConnectionList::GetCapacity() const
 // POST: 
 void ConnectionList::AddConnection(ServerSocket pSocket, bool pIsActive)
 {
-	activeStatusArray[numConnections] = true;
-	numConnections++;
+	bool success = pSocket.accept (connectionArray[numConnections]);
+	if(success)
+	{
+		activeStatusArray[numConnections] = true;
+		numConnections++;
+	}
 }
 
 // PRE: 
