@@ -6,6 +6,7 @@
 #include "SocketException.h"
 #include <cstring>
 #include <fstream>
+#include <ios>
 #include <iostream>
 #include <stdio.h>
 #include <string>
@@ -34,6 +35,21 @@ IntArray inputData(istream &pInputFile)
 	return (data);
 }
 
+// PRE: 
+// POST: 
+string inputIpAddress(istream &pInputFile)
+{
+	string address;
+	while(pInputFile.peek() != EOF)
+	{
+		char character;
+		pInputFile >> character;
+		address.push_back(character);
+	}
+
+	return(address);
+}
+
 // PRE: numSubProcesses is a defined integer denoting the number of jobs to farm
 // out to
 //      other daemons. pInputFile is a defined ifstream that denotes the file to
@@ -41,15 +57,16 @@ IntArray inputData(istream &pInputFile)
 // POST: pInputFile has been broken into numSubProcesses components
 //       and those components have been sorted. All employees created have
 //       terminated after being told that their shifts are over.
-void bossProcess(int numSubProcesses, string pFileName, int pPortNum) 
+void bossProcess(int numSubProcesses, string pFileName, string pPortNum) 
 {
 	freopen("errors.txt", "w", stderr);
 	char inputFileFullName[BASESTRINGSIZE]; // 
 	// ASSERT: 
 	snprintf(inputFileFullName, BASESTRINGSIZE, "%s", pFileName.c_str());
-	char splitCommand[BASESTRINGSIZE]; //
+	char splitCommand[2 * BASESTRINGSIZE]; //
 	// ASSERT: 
-	snprintf(splitCommand, BASESTRINGSIZE, "split -l %d -d %s sort", numSubProcesses, inputFileFullName);
+	snprintf(splitCommand, 2 * BASESTRINGSIZE, "split -n %d -d %s sort", numSubProcesses, inputFileFullName);
+	cout << "split command: " << splitCommand << endl;
 	int i = system(splitCommand); // i is the return value of the command to split the
 							// input file into their different components.
   	if (i != 0)
@@ -68,11 +85,24 @@ void bossProcess(int numSubProcesses, string pFileName, int pPortNum)
 	// NOTE: Use employee ID in order to determine which file to use. local Daemon will tell the other daemon which 
 	//       employee ID to use for running employee program.
 
+	char commandToClearFile[BASESTRINGSIZE];
+
+	snprintf(commandToClearFile, BASESTRINGSIZE, "rm %s", TEMPIPADDRESSFILE);
+
+	system(commandToClearFile);
+
 	char commandToSnagIPaddressOfBoss[BASESTRINGSIZE];
 
 	snprintf(commandToSnagIPaddressOfBoss, BASESTRINGSIZE, "hostname -I | awk '{print $1}' >> %s", TEMPIPADDRESSFILE);
 
-	snprintf(request, BASESTRINGSIZE, "%c %d %s %s", REQUEST1CHARACTER, numSubProcesses, PARALLELMERGESORTPROGPATH, EMPLOYEEARG);
+	system(commandToSnagIPaddressOfBoss);
+
+	ifstream bossIpAddressFile(TEMPIPADDRESSFILE);
+
+	string bossIpAddress = inputIpAddress(bossIpAddressFile);
+
+	snprintf(request, BASESTRINGSIZE, "%c %s %s %d %s %s", REQUEST1CHARACTER, bossIpAddress.c_str(), pPortNum.c_str(), numSubProcesses, PARALLELMERGESORTPROGPATH, EMPLOYEEARG);
+	cout << "Request made to server: " << request << endl;
 	cSock << request;
 
 	bool employeesDone = false; //
@@ -80,7 +110,7 @@ void bossProcess(int numSubProcesses, string pFileName, int pPortNum)
 
 	bool * employeesStatuses = new bool[numSubProcesses];
 
-	ServerSocket employeeCommunicator(pPortNum);
+	ServerSocket employeeCommunicator(stoi(pPortNum));
 	while (!employeesDone)
 	// ASSERT: there are employee processes still at work.
 	{
@@ -180,7 +210,7 @@ void employeeProcess(fstream &pFile, int employeeID, string bossIpAddress, int b
 // POST:
 int main(int argc, char **argv)
 {
-	if (argc < 2 || argc > 4)
+	if (argc < 2 || argc > 5)
 	// ASSERT: The number of arguments are not between 2 and 4.
 	{
 		cout << "Invalid number of arguments." << endl;
@@ -192,10 +222,12 @@ int main(int argc, char **argv)
 		//         boss of some employee programs.
 		{
 			string fileName = argv[2];
+			cout << "fileName: " << fileName << endl;
 			ifstream inputFile(argv[2]); // ifstream that contains the file of numbers to sort.
 			int numSubProcesses = stoi(argv[3]); // int that represents the number of processes to farm the work out to.
 			// ASSERT: numSubProcesses is equal to the 3rd argument passed to the program.
-			bossProcess(numSubProcesses, fileName, stoi(argv[4]));
+			cout << "number of sub processes: " << numSubProcesses << endl;
+			bossProcess(numSubProcesses, fileName, argv[4]);
 		} 
 		else if (strcmp(argv[1], "employee") == 0)
 		// ASSERT: the first argument passed to this function is

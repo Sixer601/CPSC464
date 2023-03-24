@@ -8,7 +8,6 @@
 #include <fcntl.h>
 #include <iostream>
 
-using namespace std;
 
 Socket::Socket() :
   m_sock ( -1 )
@@ -131,12 +130,7 @@ int Socket::recv ( std::string& s ) const
 
   int status = ::recv ( m_sock, buf, MAXRECV, 0 );
 
-  if ( status == -1 )
-    {
-      cout << "status == -1   errno == " << errno << "  in Socket::recv\n";
-      return 0;
-    }
-  else if ( status == 0 )
+  if ( status <= 0 )
     {
       return 0;
     }

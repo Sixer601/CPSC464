@@ -5,13 +5,6 @@ using namespace std;
 
 // PRE: 
 // POST: 
-void copy()
-{
-
-}
-
-// PRE: 
-// POST: 
 ConnectionList::ConnectionList()
 {
 	numConnections = 0;
@@ -34,7 +27,6 @@ ConnectionList::ConnectionList(const ConnectionList &pConnectionList)
 	arraySize = pConnectionList.arraySize;
 	connectionArray = new ServerSocket[arraySize];
 	activeStatusArray = new bool[arraySize];
-	copy();
 }
 
 // PRE: 

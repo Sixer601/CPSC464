@@ -13,8 +13,7 @@ using namespace std;
 // Non-Class Functions
 // ========================================
 
-// TODO: Ask Dr. Shende about if implementing a copy constructor makes sense, and if so, how to do = for ServerSocket.
-void copy();
+
 
 // ========================================
 // Class Declaration

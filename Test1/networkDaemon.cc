@@ -53,8 +53,21 @@ void handleRequest1(string request)
 	// ASSERT: ipAddressVector contains each address from ipAddressList.
 	int firstDelimiterPos = request.find(" "); // Index of first delimiter in request.
 	int secondDelimiterPos = request.find(" ", firstDelimiterPos + 1); // Index of second delimiter in request.
-	int numProcesses = stoi(request.substr(firstDelimiterPos + 1, secondDelimiterPos)); // number of processes to run in request.
-	string programToRun = request.substr(secondDelimiterPos + 1); // command to have processes run, with arguments.
+	int thirdDelimiterPos = request.find(" ", secondDelimiterPos + 1); // Index of third delimiter in request.
+	int fourthDelimiterPos = request.find(" ", thirdDelimiterPos + 1); // Index of fourth delimiter in request.
+	
+	string requesterIpAddress = request.substr(firstDelimiterPos + 1, (secondDelimiterPos) - (firstDelimiterPos + 1));
+
+	string requesterPreferredPort = request.substr(secondDelimiterPos + 1, (thirdDelimiterPos) - (secondDelimiterPos + 1));
+
+	cout << "request 1 was made by ip address: " << requesterIpAddress  << " with a preferred port of: " << requesterPreferredPort << endl;
+	
+	int numProcesses = stoi(request.substr(thirdDelimiterPos + 1, (fourthDelimiterPos) - (thirdDelimiterPos + 1))); // number of processes to run in request.
+
+	cout << "number of processes: " << numProcesses << endl;
+
+	string programToRun = request.substr(fourthDelimiterPos + 1); // command to have processes run, with arguments.
+	cout << "program to run: " << programToRun << endl;
 	vector<string>::iterator it = ipAddressVector.begin(); // iterator to go through ipAddressVector.
 	// ASSERT: it is a vector of strings iterator that begins at ipAddressVector.
 	
@@ -71,9 +84,22 @@ void handleRequest1(string request)
 			ServerSocket client; // client socket to connect to a daemon to farm out work to.
 			++it;
 			// ASSERT: the iterator for ipAddressVector is incremented.
+
+			
+
 			clients.AddConnection(client, true);
 			string idNum = to_string(i);
-			client << (REQUEST2DENOTATION + programToRun + " " + idNum + " " + FILEPREFIX + idNum);
+			if(i < DOUBLEDIGITCUTOFF)
+			{
+				cout << "Message sent to client: " << REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + "0" + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort << endl;
+				client << (REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + "0" + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort);
+			}
+			else
+			{
+				cout << "Message sent to client: " << REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort << endl;
+				client << (REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort);
+			}
+			
 		} 
 		else 
 		{
@@ -90,6 +116,7 @@ void handleRequest1(string request)
 			// This is due to the pigeonhole principle.
 		}
   	}
+	cout << "Request 1 Handled." << endl;
 }
 
 // PRE: request is a defined string containing the request made from a client
@@ -101,6 +128,7 @@ void handleRequest2(string request, bool &isChild)
 {
 	int firstDelimiterPos = request.find(DELIMITER); // Index of first delimiter in request.
 	string programToRun = request.substr(firstDelimiterPos + 1); // command to have processes run, with arguments.
+	cout << "program to run: " << programToRun << endl;
 	pid_t childPID = fork();    // process id for child process.
   	// ASSERT: childPID is the RV of fork.
 	if (childPID == -1)
@@ -111,10 +139,9 @@ void handleRequest2(string request, bool &isChild)
 	else if (childPID == 0)
   	// ASSERT: The code run inside this is for the child process.
   	{
-    		// TODO: Ask Dr. Shende about how to handle path to program.
-    		// NOTE: Use Absolute Path.
 		int progFirstDelimiterPos = programToRun.find(DELIMITER); // Index of first delimiter in the program to run.
 		string programName = programToRun.substr(0, progFirstDelimiterPos); // Name of the program to run.
+		cout << "program name: " << programName << endl;
 		const char * progName = programName.c_str();
 		const char * progArgs[MAXARGS];
 		bool areMoreArgs = true; //
@@ -138,6 +165,7 @@ void handleRequest2(string request, bool &isChild)
 			{
 				string programArg = programToRun.substr(nextDelimiterPos, followingDelimiterPos); //
 				// ASSERT: 
+				cout << "program argument: " << programArg << endl;
 				const char *progArg = programArg.c_str(); //
 				// ASSERT: 
 				progArgs[argIterator] = progArg;
@@ -173,14 +201,17 @@ void listenForRequests(ServerSocket server, bool &isChild)
 				string request; // string to hold the contents of a request made from a connection to the daemon.
 				// ASSERT: request is a defaultly constructed string.
 				new_sock >> request;
+				cout << "request sent to me: " << request << endl;
 				if (request[0] == REQUEST1CHARACTER)
 				// ASSERT: Request 1 was made.
 				{
+					cout << "recieved a request of type 1." << endl;
 					handleRequest1(request);
 				}
 				else if (request[0] == REQUEST2CHARACTER)
         			// ASSERT: Request 2 was made.
 				{
+					cout << "recieved a request of type 2." << endl;
           			handleRequest2(request, isChild);
 				} 
 				else
