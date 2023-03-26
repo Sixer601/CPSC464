@@ -6,6 +6,7 @@
 // ========================================
 
 #include "ServerSocket.h"
+#include "Sockets/ServerSocket.h"
 
 using namespace std;
 
@@ -100,6 +101,21 @@ class ConnectionList
 			// PRE: 
 			// POST: 
 			bool AllInactive();
+
+		// ========================================
+		// Operators
+		// ========================================
+
+			// PRE: 
+			// POST: 
+			ServerSocket operator [](const int & i) const;
+
+			// PRE: 
+			// POST: 
+			ServerSocket & operator [](const int & i);
+
+
+
 
 };
 

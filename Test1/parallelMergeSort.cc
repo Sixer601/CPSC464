@@ -108,19 +108,34 @@ void bossProcess(int numSubProcesses, string pFileName, string pPortNum)
 	bool employeesDone = false; //
 	// ASSERT: 
 
+	cout << "employeesDone Declared." << endl;
+
 	bool * employeesStatuses = new bool[numSubProcesses];
 
+	cout << "employeesStatuses Declared." << endl;
+
 	ServerSocket employeeCommunicator(stoi(pPortNum));
+
+	cout << "employeeCommunicator Declared." << endl;
+
 	while (!employeesDone)
 	// ASSERT: there are employee processes still at work.
 	{
+
+		cout << "Entered another iteration of the while loop." << endl;
+
 		ServerSocket new_sock; //
 		// ASSERT:
 		employeeCommunicator.accept(new_sock);
 		try 
 		{
+			cout << "successful connection." << endl;
+
 			bool singleEmployeeDone = false; //
 			// ASSERT:
+			
+			cout << "singleEmployeeDone Declared." << endl;
+			
 			while (!singleEmployeeDone)
 			// ASSERT:
 			{
@@ -157,6 +172,8 @@ void bossProcess(int numSubProcesses, string pFileName, string pPortNum)
 	cout << "All files have been sorted." << endl;
 	// TODO: Determine how to tell an employee its shift is over.
 	// NOTE: Make sure ip address is passed as well as port, shende said so.
+
+	delete [] employeesStatuses;
 }
 
 // PRE: pFile is a defined fstream object that contains the information to sort

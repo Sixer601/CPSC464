@@ -115,3 +115,18 @@ bool ConnectionList::AllInactive()
 	}
 	return(isAllInactive);
 }
+
+// PRE: 
+// POST: 
+ServerSocket ConnectionList::operator [](const int & i) const
+{
+	return (connectionArray[i]);
+}
+
+// PRE: 
+// POST: 
+ServerSocket & ConnectionList::operator [](const int & i)
+{
+	return (connectionArray[i]);
+}
+

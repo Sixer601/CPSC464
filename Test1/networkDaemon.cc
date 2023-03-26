@@ -85,21 +85,22 @@ void handleRequest1(string request)
 			++it;
 			// ASSERT: the iterator for ipAddressVector is incremented.
 
-			
-
-			clients.AddConnection(client, true);
-			string idNum = to_string(i);
-			if(i < DOUBLEDIGITCUTOFF)
+			bool success = client.accept(clients[i]);
+			if (success)
 			{
-				cout << "Message sent to client: " << REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + "0" + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort << endl;
-				client << (REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + "0" + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort);
-			}
-			else
-			{
-				cout << "Message sent to client: " << REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort << endl;
-				client << (REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort);
-			}
-			
+				clients.AddConnection(client, true);
+				string idNum = to_string(i);
+				if(i < DOUBLEDIGITCUTOFF)
+				{
+					cout << "Message sent to client: " << REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + "0" + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort << endl;
+					client << (REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + "0" + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort);
+				}
+				else
+				{
+					cout << "Message sent to client: " << REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort << endl;
+					client << (REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort);
+				}
+			}			
 		} 
 		else 
 		{
