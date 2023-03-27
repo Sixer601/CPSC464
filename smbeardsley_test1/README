@@ -1,0 +1,44 @@
+======== READ ME Documentation ========
+
+====== Purpose ======
+
+To understand how sockets behave, and how to construct a network daemon.
+
+====== Files Included ======
+
+Constants.h - List of constants used to improve readability.
+HelperFunctions.cc - function code for various helper functions like ceiling, mergesort, merge, and print array.
+HelperFunctions.h - Contains function definitions for helper functions.
+MakeFile - Contains instructions for computer on how to create executable.
+networkDaemon.cc - Driver program for the network daemon.
+parallelMergeSort.cc - Driver program for showing daemon's functionality.
+README - Documentation on Test 1.
+Socket.cc - Contains implementation of the functions in the socket class.
+Socket.h - Contains function definitions for the socket class.
+SocketException.h - helper function definitions to handle exceptions that occur with socket class.
+test-case1.txt - example file to sort using parallelMergeSort.
+
+====== How to Compile ======
+
+Running the command 'make' while your present working directory is in this folder will compile the program.
+
+====== How to Run ======
+
+The network daemon requires no arguments. The parallel merge sort program takes a different number of arguments based upon if you are invoking the boss
+portion of the program or the employee version of the program. The boss takes 3 arguments, being the boss flag, the number of employees to hire, 
+and the file to sort. The employee takes 5 arguments, being the employee flag, the boss processes' ip address and desired port number to use for contact,
+the prefix of the file the employee is to sort, and a unique identifier for the employee to aid in knowing which file they should sort.
+
+====== Example Command to Run Daemon ======
+
+./networkDaemon 
+
+====== Example Command to Run Boss ======
+
+./parallelMergeSort boss 4 test-case1.txt
+
+====== Example Command to Run Employee ======
+
+./parallelMergeSort employee 127.0.0.1 25565 sort 1
+
+====== End of READ ME ======

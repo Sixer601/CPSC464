@@ -12,6 +12,7 @@
 #include <string>
 #include <arpa/inet.h>
 
+using namespace std;
 
 const int MAXHOSTNAME = 200;
 const int MAXCONNECTIONS = 5;
@@ -21,6 +22,8 @@ class Socket
 {
 	public:
 	Socket();
+	Socket(int);
+	Socket(string, int);
 	virtual ~Socket();
 
 	// Server initialization

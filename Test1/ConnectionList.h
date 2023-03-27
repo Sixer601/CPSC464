@@ -5,8 +5,7 @@
 // Includes
 // ========================================
 
-#include "ServerSocket.h"
-#include "Sockets/ServerSocket.h"
+#include "Socket.h"
 
 using namespace std;
 
@@ -27,7 +26,7 @@ class ConnectionList
 	*/
 
 	private: 
-		ServerSocket * connectionArray;
+		Socket * connectionArray;
 		bool * activeStatusArray;
 		int numConnections;
 		int arraySize;
@@ -64,7 +63,7 @@ class ConnectionList
 
 			// PRE: 
 			// POST: 
-			ServerSocket GetIthSocketInConnectionList(int i) const;
+			Socket GetIthSocketInConnectionList(int i) const;
 
 			// PRE: 
 			// POST: 
@@ -84,7 +83,7 @@ class ConnectionList
 
 			// PRE: 
 			// POST: 
-			void AddConnection(ServerSocket pSocket, bool pIsActive);
+			void AddConnection(Socket pSocket, bool pIsActive);
 
 			// PRE: 
 			// POST: 
@@ -108,11 +107,11 @@ class ConnectionList
 
 			// PRE: 
 			// POST: 
-			ServerSocket operator [](const int & i) const;
+			Socket operator [](const int & i) const;
 
 			// PRE: 
 			// POST: 
-			ServerSocket & operator [](const int & i);
+			Socket & operator [](const int & i);
 
 
 

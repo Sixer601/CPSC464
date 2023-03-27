@@ -9,7 +9,7 @@ ConnectionList::ConnectionList()
 {
 	numConnections = 0;
 	arraySize = MAXSOCKS;
-	connectionArray = new ServerSocket[arraySize];
+	connectionArray = new Socket[arraySize];
 	activeStatusArray = new bool[arraySize];
 
 	for (int i = 0; i < arraySize; i++) 
@@ -25,7 +25,7 @@ ConnectionList::ConnectionList(const ConnectionList &pConnectionList)
 {
 	numConnections = pConnectionList.numConnections;
 	arraySize = pConnectionList.arraySize;
-	connectionArray = new ServerSocket[arraySize];
+	connectionArray = new Socket[arraySize];
 	activeStatusArray = new bool[arraySize];
 }
 
@@ -39,7 +39,7 @@ ConnectionList::~ConnectionList()
 
 // PRE: 
 // POST: 
-ServerSocket ConnectionList::GetIthSocketInConnectionList(int i) const
+Socket ConnectionList::GetIthSocketInConnectionList(int i) const
 {
 	return (connectionArray[i]);
 }
@@ -69,7 +69,7 @@ int ConnectionList::GetCapacity() const
 
 // PRE: 
 // POST: 
-void ConnectionList::AddConnection(ServerSocket pSocket, bool pIsActive)
+void ConnectionList::AddConnection(Socket pSocket, bool pIsActive)
 {
 	bool success = pSocket.accept (connectionArray[numConnections]);
 	if(success)
@@ -118,14 +118,14 @@ bool ConnectionList::AllInactive()
 
 // PRE: 
 // POST: 
-ServerSocket ConnectionList::operator [](const int & i) const
+Socket ConnectionList::operator [](const int & i) const
 {
 	return (connectionArray[i]);
 }
 
 // PRE: 
 // POST: 
-ServerSocket & ConnectionList::operator [](const int & i)
+Socket & ConnectionList::operator [](const int & i)
 {
 	return (connectionArray[i]);
 }

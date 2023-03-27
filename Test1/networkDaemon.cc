@@ -70,7 +70,7 @@ void handleRequest1(string request)
 	cout << "program to run: " << programToRun << endl;
 	vector<string>::iterator it = ipAddressVector.begin(); // iterator to go through ipAddressVector.
 	// ASSERT: it is a vector of strings iterator that begins at ipAddressVector.
-	
+
 	ConnectionList clients;
 
 	bool isAllConnected = false; // represents if all processes have been connected to or not.
@@ -81,14 +81,15 @@ void handleRequest1(string request)
 		if (!isAllConnected)
 		// ASSERT: All work has not been doled out.
 		{
-			ServerSocket client; // client socket to connect to a daemon to farm out work to.
-			++it;
-			// ASSERT: the iterator for ipAddressVector is incremented.
-
-			bool success = client.accept(clients[i]);
-			if (success)
+			Socket client; // client socket to connect to a daemon to farm out work to.
+			cout << "attempting to connect to: " << *it << " on port: " << requesterPreferredPort << endl;
+			bool success = client.connect((*it), stoi(requesterPreferredPort));
+			if(success)
 			{
 				clients.AddConnection(client, true);
+				++it;
+				// ASSERT: the iterator for ipAddressVector is incremented.
+
 				string idNum = to_string(i);
 				if(i < DOUBLEDIGITCUTOFF)
 				{
@@ -100,7 +101,11 @@ void handleRequest1(string request)
 					cout << "Message sent to client: " << REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort << endl;
 					client << (REQUEST2DENOTATION + programToRun + " " + FILEPREFIX + idNum + " " + idNum + " " + requesterIpAddress + " " + requesterPreferredPort);
 				}
-			}			
+			}
+			else
+			{
+				cout << "failed connection." << endl;
+			}
 		} 
 		else 
 		{
@@ -115,6 +120,7 @@ void handleRequest1(string request)
 			isAllConnected = true;
 			// ASSERT: all daemons in IPADDRESSFILE have been farmed out. This means multiple jobs are given to some daemons.
 			// This is due to the pigeonhole principle.
+			cout << "all connected." << endl;
 		}
   	}
 	cout << "Request 1 Handled." << endl;
@@ -140,6 +146,7 @@ void handleRequest2(string request, bool &isChild)
 	else if (childPID == 0)
   	// ASSERT: The code run inside this is for the child process.
   	{
+		cout << "Child process running." << endl;
 		int progFirstDelimiterPos = programToRun.find(DELIMITER); // Index of first delimiter in the program to run.
 		string programName = programToRun.substr(0, progFirstDelimiterPos); // Name of the program to run.
 		cout << "program name: " << programName << endl;

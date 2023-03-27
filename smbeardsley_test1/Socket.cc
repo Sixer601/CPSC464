@@ -3,12 +3,11 @@
 
 #include "Socket.h"
 #include "SocketException.h"
-#include "string.h"
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <iostream>
-
+#include <string>
 
 Socket::Socket() :
   m_sock ( -1 )
@@ -18,6 +17,39 @@ Socket::Socket() :
 	   0,
 	   sizeof ( m_addr ) );
 
+}
+
+// Server Socket Constructor
+Socket::Socket(int port)
+{
+	if ( ! Socket::create() )
+    	{
+     	throw SocketException ( "Could not create server socket." );
+	}
+
+	if ( ! Socket::bind ( port ) )
+	{
+     	throw SocketException ( "Could not bind to port." );
+	}
+
+  	if ( ! Socket::listen() )
+	{
+     	throw SocketException ( "Could not listen to socket." );
+    	}
+}
+
+// Client Socket Constructor
+Socket::Socket(string host, int port)
+{
+	if ( ! Socket::create() )
+    	{
+     	throw SocketException ( "Could not create client socket." );
+    	}
+
+	if ( ! Socket::connect ( host, port ) )
+	{
+     	throw SocketException ( "Could not bind to port." );
+	}
 }
 
 Socket::~Socket()
