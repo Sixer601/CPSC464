@@ -17,7 +17,7 @@ class MyString
                               theString[0]..theString[L-1] are the
                               characters of this MyString object.
                               theString[L] = '\0'
-   */
+     */
 
 private:
 	char *theString; // holds the characters for this MyString object.
