@@ -5,6 +5,7 @@
 #define SocketException_class
 
 #include <string>
+#include <iostream>
 
 class SocketException
 {

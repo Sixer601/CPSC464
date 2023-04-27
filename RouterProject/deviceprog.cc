@@ -86,18 +86,18 @@ int main(int argc, char **argv)
 	srand(time(NULL));
 
 	Address myAddress(getIpAddress(), stoi(argv[1]));
-	Address broadcastAddress(getIpAddress(), 0);
+	Address broadcastAddress("0", 0);
 	Point myLocation((rand() % 100) + 1, (rand() % 100) + 1);
 	cout << myLocation.Serialize() << endl;
 	RoutingTable myRoutingTable;
 	Device myDeviceInfo(myAddress, myLocation, myRoutingTable);
 
-	Socket routerCommunicator(myAddress.GetAddress(), atoi(argv[2]));
+	Socket routerCommunicator(myAddress.GetAddress(), ROUTERPORTNUMBER);
 	routerCommunicator.set_non_blocking(true);
 	string initialHandshake = argv[1];
 	string reply;
 
-	routerCommunicator << initialHandshake;
+	routerCommunicator << ("d" + initialHandshake).c_str();
 	sleep(3);
 
 	try 

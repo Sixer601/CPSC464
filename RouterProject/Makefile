@@ -40,4 +40,4 @@ Socket.o:	Socket.h SocketException.h Socket.cc
 	g++ -c Socket.cc
 
 clean:
-	rm -f *.o routerprog deviceprog
+	rm -f *.o routerprog deviceprog routerIP.txt

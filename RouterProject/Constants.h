@@ -2,12 +2,13 @@
 #define INCLUDED_Constants
 
 #define BASESTRINGSIZE 1024
-#define ROUTERIPFILE "/tmp/routerIP.txt"
+#define ROUTERIPFILE "/home/sixer601/CPSC464/RouterProject/routerIP.txt"
+#define ROUTERIPFILE2 "/home/students/smbeardsley/RouterProject/routerIP.txt"
 #define TEMPFILE "/tmp/test2output.txt"
 #define ROUTERPORTNUMBER 2048
 #define MYMAXCONNECTIONS 100
 #define MAXENTRIES 500
-#define SIGNALSTRENGTH 25
+#define SIGNALSTRENGTH 75
 
 #define BROADCASTIPADDRESS 0
 #define BROADCASTPORT 0

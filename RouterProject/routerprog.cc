@@ -17,28 +17,35 @@
 
 using namespace std;
 
-void setupConnection(Socket * newConnection, ConnectionsList &connections)
+void setupConnection(Socket * newConnection, ConnectionsList &deviceConnections, ConnectionsList &routerConnections)
 {
-	newConnection->set_non_blocking(true);
-	string clientMessage;
-	*newConnection >> clientMessage;
-	int portNum = stoi(clientMessage.substr(0, clientMessage.find(DELIMITER)));
-	Address clientAddress(getIpAddress(), portNum);
-	connections.AddConnection(newConnection, clientAddress);	
-	connections.PrintConnectionsList();
-}
-
-void broadcastMessageNetworkWide(ConnectionsList &routerConnections, string message)
-{
-	try 
+	try
 	{
-		for(int j = 0; j < routerConnections.GetNumConnections(); j++)
+	  	string message;
+		*newConnection >> message;
+		if(message[0] == 'r')
 		{
-			*routerConnections.GetNthConnection(j) << message;
+		  string foreignRouterAddress = message.substr(1);
+		  Address routerAddress(foreignRouterAddress, ROUTERPORTNUMBER);
+		  routerConnections.AddConnection(newConnection, routerAddress);
+		  cout << "Routers Connected: " << endl;
+		  routerConnections.PrintConnectionsList();
 		}
-	} 
-	catch (SocketException &e)
-	{}
+		else if (message[0] == 'd')
+		  {
+		    int portNum = stoi(message.substr(1));
+		    Address clientAddress(getIpAddress(), portNum);
+		    deviceConnections.AddConnection(newConnection, clientAddress);
+		    cout << "Devices Connected: " << endl;
+		    deviceConnections.PrintConnectionsList();
+		  }
+		else
+		  {
+		    cout << "bad message." << endl;
+		  }
+	}
+	catch(SocketException &e)
+	  {cerr << e.description() << endl;}
 }
 
 void broadcastMessage(ConnectionsList &connections, string message)
@@ -50,6 +57,20 @@ void broadcastMessage(ConnectionsList &connections, string message)
 			*connections.GetNthConnection(j) << message;
 		}
 	}
+	catch (SocketException &e)
+	{}
+}
+
+void broadcastMessageNetworkWide(ConnectionsList &routerConnections, string message, ConnectionsList &deviceConnections)
+{
+	try 
+	{
+		for(int j = 0; j < routerConnections.GetNumConnections(); j++)
+		{
+			*routerConnections.GetNthConnection(j) << message;
+		}
+		broadcastMessage(deviceConnections, message);
+	} 
 	catch (SocketException &e)
 	{}
 }
@@ -77,7 +98,7 @@ void listenForClientMessages(ConnectionsList &deviceConnections, ConnectionsList
 			Address recipientAddress(messageContents.GetRecipientAddress());
 			if(recipientAddress.GetAddress() == to_string(BROADCASTIPADDRESS))
 			{
-				broadcastMessageNetworkWide(routerConnections, message);
+				broadcastMessageNetworkWide(routerConnections, message, deviceConnections);
 			}
 			else if(recipientAddress.GetPort() == 0)
 			{
@@ -93,20 +114,25 @@ void listenForClientMessages(ConnectionsList &deviceConnections, ConnectionsList
 	}
 }
 
-void updateRouterConnections(ConnectionsList &routerConnections)
+void updateRouterConnections(ConnectionsList &routerConnections, Address &myAddress)
 {
 	ifstream ipAddressList(ROUTERIPFILE);
 	while (ipAddressList.peek() != EOF)
   	{
 		string datum;
 		ipAddressList >> datum;
-		Address routerAddress(datum, ROUTERPORTNUMBER);
-		Socket * routerCommunicator;
-		routerCommunicator = new Socket(datum, ROUTERPORTNUMBER);
-		routerCommunicator->set_non_blocking(true);
-		if(!routerConnections.HasConnectionWithAddress(routerAddress))
+		if(datum != "" && !(datum == myAddress.GetAddress()))
 		{
+ 		  Address routerAddress(datum, ROUTERPORTNUMBER);
+		  if(!routerConnections.HasConnectionWithAddress(routerAddress))
+		  {
+		    	Socket * routerCommunicator;
+			routerCommunicator = new Socket(datum, ROUTERPORTNUMBER);
+			routerCommunicator->set_non_blocking(true);
+			*routerCommunicator << "r" + myAddress.GetAddress();
 			routerConnections.AddConnection(routerCommunicator, routerAddress);
+			routerConnections.PrintConnectionsList();
+		  }
 		}
 	}
 }
@@ -135,48 +161,57 @@ void listenForRouterMessages(ConnectionsList &routerConnections, ConnectionsList
 	}
 }
 
-void listenForRequests(Socket &pListener, ConnectionsList &deviceConnections, ConnectionsList &routerConnections)
+void listenForRequests(Socket &pListener, ConnectionsList &deviceConnections, ConnectionsList &routerConnections, Address &myAddress)
 {
-	while (true) 
-  	// ASSERT: loop indefinitely.
-     {
-		string message;
+  while (true) 
+  // ASSERT: loop indefinitely.
+  {
+	string message;
      	Socket * newConnection = new Socket(); // socket to handle when a connection with another computer is made.
-		// ASSERT: newConnection is an empty socket.
+	// ASSERT: newConnection is an empty socket.
      	bool success = pListener.accept(*newConnection); // sanity check to ensure code runs 
-	 										   // when accepting the connection is successful.
-		// ASSERT: success is true if listener accepted the socket and false when listener did not.
+						         // when accepting the connection is successful.
+	// ASSERT: success is true if listener accepted the socket and false when listener did not.
      	if(success)
-		// ASSERT: accepting of newConnection by listener was successful.
-		{
-			setupConnection(newConnection, deviceConnections);
-		}
-		listenForClientMessages(deviceConnections, routerConnections, message);
-		updateRouterConnections(routerConnections);
-		listenForRouterMessages(routerConnections, deviceConnections, message);
-		int numRouters;
-		sleep(2);
-   	}
+	// ASSERT: accepting of newConnection by listener was successful.
+	{
+	  setupConnection(newConnection, deviceConnections, routerConnections);
+	  newConnection->set_non_blocking(true);
+	}
+	else
+	{
+	  delete newConnection;
+	}
+	listenForClientMessages(deviceConnections, routerConnections, message);
+	updateRouterConnections(routerConnections, myAddress);
+	listenForRouterMessages(routerConnections, deviceConnections, message);
+	sleep(2);
+  }
 }
 
-void writeAddressToSharedFile(Address &myAddress, string sharedFilePath)
+void writeAddressToSharedFile()
 {
-	ofstream sharedFile(sharedFilePath);
-	sharedFile << myAddress.Serialize() << endl;
-	sharedFile.close();
+  char commandToAddIPaddressToRoutersFile[BASESTRINGSIZE];
+  snprintf(commandToAddIPaddressToRoutersFile, BASESTRINGSIZE, "hostname -I | awk '{print $1}' >> %s", ROUTERIPFILE);
+  int rvSystemCall = system(commandToAddIPaddressToRoutersFile);
+  if(rvSystemCall != 0)
+    {
+      cout << "Errors in putting ip address of computer in " << ROUTERIPFILE << endl;
+    }
 }
 
 int main(int argc, char **argv)
 {
-	Socket listener(atoi(argv[1]));
+	Socket listener(ROUTERPORTNUMBER);
 	listener.set_non_blocking(true);
 	ConnectionsList deviceConnections;
 	ConnectionsList routerConnections;
 
-	Address routerAddress(getIpAddress(), atoi(argv[1]));
-	writeAddressToSharedFile(routerAddress, ROUTERIPFILE);
+	Address routerAddress(getIpAddress(), ROUTERPORTNUMBER);
+	writeAddressToSharedFile();
+	
 	cout << "Listening on " << routerAddress.Serialize() << endl;
-	listenForRequests(listener, deviceConnections, routerConnections);
+	listenForRequests(listener, deviceConnections, routerConnections, routerAddress);
 
 	return(0);
 }
