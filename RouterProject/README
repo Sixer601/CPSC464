@@ -1,0 +1,84 @@
+======== READ ME Documentation ========
+
+====== Scenario ======
+
+There are n devices placed on a cartesian graph, such that each device is given a unique
+positive integer coordinate pair on said graph. Each of the n devices also have a broadcast
+strength, which is a single integer value that represents the distance that a message can travel.
+
+====== The Goal ======
+
+Each of the n devices have a table of information that represents a destination, the first hop
+to send the packet to, and the total length of the path from this device to the destination device.
+
+====== Routing Table ======
+
+The routing table store the IP Address and Port of each device on the network, the first
+hop to send the packet to, and the length of the path.
+
+====== Routers ======
+
+Because we are simulating this on a limited number of computers, and want each device to be
+on its own process, the use of routers is utilized. These routers have the function to
+forward data from one device to another on the same computer, or from one device to a router
+on another computer.
+
+====== Devices ======
+
+Each device sends out a discovery message to each other device to determine what nodes
+exist on the network that are in range. These messages will contain our current table, and after
+receiving replies, we will update the individual device’s routing table accordingly. Whenever a
+device has updated its routing table, it outputs to standard output its updated routing table. 
+Also, whenever a discovery message is sent from a device, its terminal output should reflect that.
+
+====== Debugging ======
+
+For debugging purposes, a log of new connections is output for the router, to standard output,
+denoting the activity involving the router.
+
+====== Files Included ======
+
+Address.cc - Contains all methods for Address class.
+Address.h - Contains class declaration and method definitions for Address.cc
+ConnectionsList.cc - Contains all methods for ConnectionsList class.
+ConnectionsList.h - Contains class declaration and method definitions for ConnectionsList.cc
+Constants.h - List of constants used to improve readability.
+deviceprog.cc - Driver program to accomplish main task of device.
+HelperFunctions.cc - function code for various helper functions.
+HelperFunctions.h - Contains function definitions for helper functions.
+MakeFile - Contains instructions for computer on how to create executable.
+Message.cc - Contains all methods for Message class.
+Message.h - Contains class declaration and method definitions for Message.cc
+Point.cc - Contains all methods for Point class.
+Point.h - Contains class declaration and method definitions for Point.cc
+README - Documentation on Test 2.
+routerprog.cc - Driver program to accomplish main task of router.
+RoutingTable.cc - Contains all methods for RoutingTable class.
+RoutingTable.h - Contains class declaration and method definitions for RoutingTable.cc
+Socket.cc - Contains all methods for Socket class.
+Socket.h - Contains class declaration and method definitions for Socket.cc
+SocketException.h - Contains class delcaration and methods for SocketException class.
+
+====== How to Compile ======
+
+Running the command 'make' while your present working directory is in this folder will compile the program.
+
+====== How to Run Router ======
+
+This program takes in no arguments, and will perform all functionality by simply executing command.
+
+====== Example Command to Run Router Program ======
+
+./routerprog
+
+====== How to Run Device ======
+
+This program takes in one argument, which is the desired port for the device to be recognized on. 
+This port takes on more of a function of an ID number, but is labeled as port to be in line with the address class.
+I am not sure if the distinction makes a large difference, but the device does not reserve a port, compared to the router.
+
+====== Example Command to Run Device Program ======
+
+./deviceprog 3000
+
+====== End of READ ME ======
