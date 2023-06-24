@@ -260,7 +260,7 @@ void listenForRequests(Socket &pListener, ConnectionsList &deviceConnections, Co
      	bool success = pListener.accept(*newConnection); // sanity check to ensure code runs 
 										         // when accepting the connection is successful.
 		// ASSERT: success is true if listener accepted the socket and false when listener did not.
- 		if(success)
+		if(success)
 		// ASSERT: accepting of newConnection by listener was successful.
 		{
 	  		setupConnection(newConnection, deviceConnections, routerConnections);
