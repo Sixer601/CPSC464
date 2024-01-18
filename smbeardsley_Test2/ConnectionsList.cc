@@ -80,8 +80,7 @@ using namespace std;
 		// ASSERT: pPort has not been found and index is less than the number of connections.
 		{
 			if(addressList[index].GetPort() == pPort)
-			// ASSERT: the index'th entry in this object's address's port is equivalent to pPort.
-			{
+			// ASSERT: the index'th entry in this object's address's port is equivalent to pPort.			{
 				isFound = true;
 				// ASSERT: pPort has been found.
 			}
